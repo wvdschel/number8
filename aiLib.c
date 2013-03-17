@@ -6,36 +6,54 @@
 // State switching macro
 #define SWITCH_STATE(nState)	{ printInt(__LINE__); printString(": Switching to new state "); printInt(nState); puts(""); currState = nState; stateTimer = 0; }
 // Engine control macros
-#define MOTOR1(dir)				currDirMotor1 = dir; setSpeedMotor1(dir);
-#define MOTOR2(dir)				currDirMotor2 = dir; setSpeedMotor2(-(dir));
+#define MOTOR_LEFT(dir)			currDirMotorLeft = dir; setSpeedMotor1(dir);
+#define MOTOR_RIGHT(dir)		currDirMotorRight = dir; setSpeedMotor2(-(dir));
 // Printing macros
-#define ENGINE_STATE(dir)		(dir > 0 ? '^' : (dir < 0 ? 'V' : '-'))
+#define MOTOR_STATE(dir)		(dir > 0 ? '^' : (dir < 0 ? 'V' : '-'))
 
 // Possible states for the robot
-#define STATE_SEEK		 	1		// Looking for the enemy
-#define STATE_DESTROY 		2		// Enemy in front of robot, try to push it
-#define STATE_DESTROY_OVER	3		// Pushing the enemy, a white line has been detected by our front side, so we must be close to the end of the ring
-#define STATE_SURVIVE	 	4		// White edge detected, move away
+#define STATE_SEEK		 	1			// Looking for the enemy
+#define STATE_DESTROY 		2			// Enemy in front of robot, try to push it
+#define STATE_DESTROY_OVER	3			// Pushing the enemy, a white line has been detected by our front side, so we must be close to the end of the ring
+#define STATE_SURVIVE	 	4			// White edge detected, move away
 
 // Sensor calibration related stuff
-#define DIFF_THRESHOLD 		3		// Maximum difference between two long range sensors, if the diff is higher, the robot will reallign.
-#define DISTANCE_CLOSE		30		// Anything lower than this value is considered close, anything higher is considered infinitely far away
+#define DIFF_THRESHOLD 		3			// Maximum difference between two long range sensors, if the diff is higher, the robot will reallign.
+#define DISTANCE_CLOSE		30			// Anything lower than this value is considered close, anything higher is considered infinitely far away
 #define SEEK_ROTATE_TIME 	(int)75 	// How many iterations should we wait before moving the robot to change the search space.
 							 			// To disable this and just turn left all the time, set to 0.
-#define SEEK_MOVE_TIME		(int)60	// How long the robot should move forward before looking around again.
-#define SAMPLE_COUNT		10		// The amount of samples for each measurement
-#define WHITE_BLACK_RATIO	0.3		// The ratio of readings on a black floor vs a white floor. white <= ratio * black.
-#define SURVIVE_TIME		10		// How long the robot stays in survival mode after the "threat" has gone away.
+#define SEEK_MOVE_TIME		(int)60		// How long the robot should move forward before looking around again.
+#define SAMPLE_COUNT		10			// The number of samples for each measurement
+#define WHITE_BLACK_RATIO	0.3			// The ratio of readings on a black floor vs a white floor. white <= ratio * black.
+#define SURVIVE_TIME		10			// How long the robot stays in survival mode after the "threat" has gone away.
 
 // Global vars
-int sensor[7]; 						// Sensor readings
-int currState = STATE_SEEK;			// Current state of the robot
-int stateTimer = -1;				// How long have we been in the current state? 
-int currDirection = 0;				// Current direction of the engines
-int currDirMotor1 = 0, currDirMotor2 = 0;	// Direction of each motor
-int initialGroundReading[4];		// Initial readings from the ground sensors - this is our reference for "black"
-int initialLeftEye = 0, initialRightEye = 0;
-									// Initial readings for long distance sensors, to account for noise etc.
+int sensor[7]; 					// Sensor readings
+int currState = STATE_SEEK;		// Current state of the robot
+int stateTimer = -1;			// How long have we been in the current state?
+int currDirection = 0;			// Current direction of the engines
+int currDirMotorLeft = 0;		// Direction of each motor
+int currDirMotorRight = 0;
+int initialGroundReading[4];	// Initial readings from the ground sensors - this is our reference for "black"
+int initialEyeLeft = 0;			// Initial readings for long distance sensors, to account for noise etc.
+int initialEyeRight = 0;
+
+void ailib_init()
+{
+	LEDS = 0;
+	initSensors();
+
+#ifdef PROGRESS_WHEEL
+	// TODO setup timer
+#endif
+}
+
+void ailib_isr()
+{
+#ifdef PROGRESS_WHEEL
+	// call quedenc.c
+#endif
+}
 
 void doMove()
 {
@@ -44,16 +62,6 @@ void doMove()
 	if(stateTimer >= 1000000)
 		stateTimer = 0;
 	stateTimer += 1;
-
-#if 0	
-	if(stateTimer % 50 == 0)
-		if(stateTimer % 100 == 0)
-			setMotors(DIR_FORWARD);
-		else
-			setMotors(DIR_BACK);
-	delay_ms(DEBUG ? 1000 : 100);	
-	return;
-#endif
 
 	readSensors();
 	distanceLeft = distanceSensor(DIR_LEFT);
@@ -64,7 +72,7 @@ void doMove()
 	case STATE_SEEK: // Turn right for a while, then turn left until you find an enemy.
 		if(survivalCheck())
 			break;
-`		// If we just switched, start turning.
+		// If we just switched, start turning.
 		if(stateTimer == 1)
 		{
 			if(currDirection & DIR_RIGHT)
@@ -223,7 +231,7 @@ void initSensors()
 {
 	int i;
 
-	// Init touch sensors
+	// Init touch sensors and/or progress wheel
 	TRISEbits.TRISE1 = INPUT;
 	TRISEbits.TRISE2 = INPUT;
 	TRISDbits.TRISD1 = INPUT;
@@ -237,12 +245,12 @@ void initSensors()
 	printInt(initialGroundReading);
 	puts("");
 
-	initialRightEye = sensor[0];
-	initialLeftEye  = sensor[1];
+	initialEyeRight = sensor[0];
+	initialEyeLeft  = sensor[1];
 	printString("Initial long distances sensors: ");
-	printInt(initialLeftEye);
+	printInt(initialEyeLeft);
 	printString(" ");
-	printInt(initialRightEye);
+	printInt(initialEyeRight);
 	puts("");
 }
 
@@ -263,40 +271,39 @@ void readSensors()
 
 void setMotors(int direction)
 {
-	// Assuming motor #1 is left, #2 is right.
 	if(currDirection == direction)
 		return; // Don't needlessly change the signal
-	MOTOR1(1023);
-	MOTOR2(1023);
+	MOTOR_LEFT(1023);
+	MOTOR_RIGHT(1023);
 	if(direction & DIR_FORWARD) 
 	{
 		if(direction & DIR_RIGHT)
 		{
-			MOTOR2(0);
+			MOTOR_RIGHT(0);
 		} else if(direction & DIR_LEFT) {
-			MOTOR1(0);
+			MOTOR_LEFT(0);
 		}	
 	} else if(direction & DIR_BACK) {
-		MOTOR1(-1023);
-		MOTOR2(-1023);
+		MOTOR_LEFT(-1023);
+		MOTOR_RIGHT(-1023);
 		if(direction & DIR_RIGHT)
 		{
-			MOTOR1(0);
+			MOTOR_LEFT(0);
 		} else if(direction & DIR_LEFT) {
-			MOTOR2(0);
+			MOTOR_RIGHT(0);
 		}
 	} else {
 		// No real movement, may be turning in place
 		if(direction & DIR_RIGHT)
 		{
-			MOTOR1(1023);
-			MOTOR2(-1023);
+			MOTOR_LEFT(1023);
+			MOTOR_RIGHT(-1023);
 		} else if(direction & DIR_LEFT) {
-			MOTOR1(-1023);
-			MOTOR2(1023);
+			MOTOR_LEFT(-1023);
+			MOTOR_RIGHT(1023);
 		} else {
-			MOTOR1(0);
-			MOTOR2(0);
+			MOTOR_LEFT(0);
+			MOTOR_RIGHT(0);
 		}	
 	}
 	currDirection = direction;
@@ -322,21 +329,23 @@ int groundSensor(unsigned sensor_dir)
 int distanceSensor(unsigned sensor_dir)
 {
 	if(sensor_dir == DIR_RIGHT)
-		return ((1024 + initialRightEye) - sensor[0])/30;
+		return ((1024 + initialEyeRight) - sensor[0])/30;
 	else
-		return ((1024 + initialLeftEye)  - sensor[1])/30;
+		return ((1024 + initialEyeLeft)  - sensor[1])/30;
 }
 
 int pushSensor(unsigned sensor_dir) {
 	//PORT(D/E).R(D/E)(1/2)
-	if(sensor_dir == DIR_FORWARD)
-		return PORTDbits.RD1;
-	else if(sensor_dir == DIR_RIGHT)
-		return PORTDbits.RD2;
-	else if(sensor_dir == DIR_BACK)
+	if(sensor_dir == DIR_BACK)
 		return PORTEbits.RE1;
-	else if(sensor_dir == DIR_BACK)
+	else if(sensor_dir == DIR_FORWARD)
 		return PORTEbits.RE2;
+#ifndef PROGRESS_WHEEL
+	else if(sensor_dir == DIR_RIGHT)
+		return PORTDbits.RD1;
+	else if(sensor_dir == DIR_LEFT)
+		return PORTDbits.RD2;
+#endif
 	else
 		return FALSE;
 }
@@ -367,10 +376,10 @@ void printState()
 	printInt(stateTimer);
 	puts("");
 
-	// Print out engine state
-	printString("Current engine state: ");
-	printChar(ENGINE_STATE(currDirMotor1));
-	printChar(ENGINE_STATE(currDirMotor2));
+	// Print out motor state
+	printString("Current motor state: ");
+	printChar(MOTOR_STATE(currDirMotorLeft));
+	printChar(MOTOR_STATE(currDirMotorRight));
 	puts("");
 	
 	// Print ground sensor readings

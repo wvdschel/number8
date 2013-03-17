@@ -82,6 +82,7 @@ void low_vector() {
 // interrupt handler routines DO NOT EDIT
 #pragma interrupt YourHighPriorityISRCode
 void YourHighPriorityISRCode() {
+#ifdef SERVO
   if(PIR1bits.TMR1IF == TRUE) {	// check interrupt flag: from timer?
     if(PORTBbits.RB5 == 0) {
       TMR1H = (timerServo & 0xFF00) >> 8; // keep most significant byte
@@ -93,8 +94,12 @@ void YourHighPriorityISRCode() {
       PORTBbits.RB5 = 0; // low pulse
     }
     PIR1bits.TMR1IF = FALSE; // reenable TMR1 interrupt
-  }	
+  }
+#else
+  ailib_isr();
+#endif
 }
+
 #pragma interruptlow YourLowPriorityISRCode
 void YourLowPriorityISRCode() {
 
@@ -171,14 +176,10 @@ void main(void) {
 	PIE1bits.TMR1IE = 1;
 	// end of servo control routines
 #endif
-#ifndef SERVO
-	
-#endif
 
 	/********************** MODIFY CODE STARTING FROM HERE ***********************/
 	// Write your controller inside this while-loop: YOU HAVE TO EDIT THIS
-	LEDS = 0;
-	initSensors();
+	ailib_init();
 	while(TRUE) { // do forever
 		doMove();
 	}

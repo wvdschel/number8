@@ -8,6 +8,9 @@
 #define DIR_LEFT 	4
 #define DIR_RIGHT 	8
 
+void ailib_init(void);
+void ailib_isr(void);
+
 void initState(int direction);
 void initSensors(void);
 void readSensors(void);

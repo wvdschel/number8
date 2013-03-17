@@ -6,7 +6,8 @@
 short speedMotor1;
 short speedMotor2;
 
-void initMotors(){
+void initMotors()
+{
 	speedMotor1 = 0;
 	speedMotor2 = 0;
 
@@ -17,8 +18,6 @@ void initMotors(){
 	TRISCbits.TRISC7 = 1; // set TRISC<7>
 	TRISCbits.TRISC6 = 0; // clr TRISC<6>
 
-	//PORTCbits.RC7 = 1;
-
 	OpenUSART(	USART_TX_INT_OFF &
 				USART_RX_INT_OFF &
 				USART_ASYNCH_MODE &
@@ -28,16 +27,20 @@ void initMotors(){
 				155); // 20.000.000 / (16 * (64 + 1)) = 19231
 }
 
-void setSpeedMotor(short speed, char forward, char reverse){
+void setSpeedMotor(short speed, char forward, char reverse)
+{
 	unsigned char speedData = (unsigned char)(abs(speed) >> 3); // clear sign bit and divide by 8
 
-	if(DEBUG) {
+	if(DEBUG)
+	{
 		printString("Code to motor: ");
 		printInt((int)(speed >= 0 ? (unsigned const char)forward : (unsigned const char)reverse));
 		printString(" ");
 		printInt((int)speedData);
 		puts("");
-	} else {
+	}
+	else
+	{
 		while(BusyUSART());	
 		putcUSART(speed >= 0 ? (unsigned const char)forward : (unsigned const char)reverse);
 		while(BusyUSART());
@@ -45,10 +48,12 @@ void setSpeedMotor(short speed, char forward, char reverse){
 	}
 }
 
-void setSpeedMotor1(short speed){
-
-	if(speed != speedMotor1){
-		if(DEBUG) {
+void setSpeedMotor1(short speed)
+{
+	if(speed != speedMotor1)
+	{
+		if(DEBUG)
+		{
 			printString("Changing motor setting, now is [left = ");
 			printInt(speed);
 			printString("] and [right = ");
@@ -58,13 +63,15 @@ void setSpeedMotor1(short speed){
 		setSpeedMotor(speed, (unsigned const char)0xCE, (unsigned const char)0xCD);
 
 		speedMotor1 = speed;
-		//LEDS |= 0x1;
 	}
 }
 
-void setSpeedMotor2(short speed){
-	if(speed != speedMotor2){
-		if(DEBUG) {
+void setSpeedMotor2(short speed)
+{
+	if(speed != speedMotor2)
+	{
+		if(DEBUG)
+		{
 			printString("Changing motor setting, now is [left = ");
 			printInt(speedMotor1);
 			printString("] and [right = ");
@@ -74,11 +81,11 @@ void setSpeedMotor2(short speed){
 		setSpeedMotor(speed, (unsigned const char)0xC6, (unsigned const char)0xC5);
 
 		speedMotor2 = speed;
-		//LEDS |= 0x2;
 	}
 }
 
-void stopMotors(void){
+void stopMotors(void)
+{
 	setSpeedMotor1(0);
 	setSpeedMotor2(0);
 }

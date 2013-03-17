@@ -15,3 +15,11 @@
 *.exe
 *.out
 *.app
+
+# Linker files
+*.cof
+*.hex
+*.map
+
+# Compiler warnings/errors
+*.err

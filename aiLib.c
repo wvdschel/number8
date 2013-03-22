@@ -1,11 +1,14 @@
+#define QUADENC_PULLDOWN
+
 #include "util.h"
 #include "aiLib.h"
 #include "dwengoMotor.h"
 #include "serialDebug.h"
+#include "quadenc.h"
 
 // State switching macro
 #define SWITCH_STATE(nState)	{ printInt(__LINE__); printString(": Switching to new state "); printInt(nState); puts(""); currState = nState; stateTimer = 0; }
-// Engine control macros
+// Motor control macros
 #define MOTOR_LEFT(dir)			currDirMotorLeft = dir; setSpeedMotor1(dir);
 #define MOTOR_RIGHT(dir)		currDirMotorRight = dir; setSpeedMotor2(-(dir));
 // Printing macros
@@ -27,6 +30,11 @@
 #define WHITE_BLACK_RATIO	0.3			// The ratio of readings on a black floor vs a white floor. white <= ratio * black.
 #define SURVIVE_TIME		10			// How long the robot stays in survival mode after the "threat" has gone away.
 
+#define PROGRESS_WHEEL
+#define PROGRESS_WHEEL_TIMER 58036		// Internal clock frequency is 48Mhz because of the PLL settings. Using fosc/4 and
+										// a prescaler of 1/8 for timer 1 in 16 bit mode, this value gives us ?? ms between
+										// interrupts, not including interrupt processing.
+
 // Global vars
 int sensor[7]; 					// Sensor readings
 int currState = STATE_SEEK;		// Current state of the robot
@@ -44,21 +52,51 @@ void ailib_init()
 	initSensors();
 
 #ifdef PROGRESS_WHEEL
-	// TODO setup timer
+	quadenc_init();
+
+	/*
+	 * This code was copied and adapted from the servo control routine.
+	 * TIMER1 is a 16 bit timer. We might be able to use TIMER0, an 8-bit
+	 * timer, if we use the right prescaler.
+	 */
+	INTCON2bits.NOT_RBPU = 1;			// disable internal pull-ups
+										// WHY?
+
+	PIR1bits.TMR1IF = 0;				// clear timer 1 interrupt flag
+	RCONbits.IPEN = 1;					// enable priority levels on interrupts
+	RCONbits.SBOREN = 0;				// turn off software brown-out reset
+										// WHY?
+
+	TMR1H = (PROGRESS_WHEEL_TIMER & 0xFF00) >> 8;	// set high byte of timer 1
+	TMR1L = (PROGRESS_WHEEL_TIMER & 0x00FF); 		// set low byte of timer 1
+
+	T1CON = 0b00110001; 				// 48Mhz/4, prescaler 1/8, timer 1 enabled
+	INTCONbits.GIEH = TRUE;				// enable all high priority interrupts
+	IPR1bits.TMR1IP = 1;				// set timer 1 overflow interrupt priority to high
+	PIE1bits.TMR1IE = 1;				// enable timer 1 interrupt
+										// DIFFERENCE BETWEEN THIS AND T1CON TIMER ENABLED?
 #endif
 }
 
 void ailib_isr()
 {
 #ifdef PROGRESS_WHEEL
-	// call quedenc.c
+	if(PIR1bits.TMR1IF) // check if interrupt came from timer 1
+	{
+		quadenc_isr();
+
+		TMR1H = (PROGRESS_WHEEL_TIMER & 0xFF00) >> 8;	// set high byte of timer 1
+		TMR1L = (PROGRESS_WHEEL_TIMER & 0x00FF); 		// set low byte of timer 1
+
+		PIR1bits.TMR1IF = 0; // re-enable timer 1
+	}
 #endif
 }
 
 void doMove()
 {
 	int distanceLeft, distanceRight, distanceAvg;
-	
+
 	if(stateTimer >= 1000000)
 		stateTimer = 0;
 	stateTimer += 1;

@@ -21,8 +21,8 @@
 #include <p18f4550.h>
 #include "quadenc_prv.h"
 
-#define IO_ROTENC_CH0 PORTBbits.RB0
-#define IO_ROTENC_CH1 PORTBbits.RB1
+#define IO_ROTENC_CH0 PORTDbits.RD1
+#define IO_ROTENC_CH1 PORTDbits.RD2
 
 // ==========================================================================
 // init
@@ -30,8 +30,13 @@
 void quadenc_init(void)
 {
 	// init locals
+#ifndef QUADENC_PULLDOWN
 	quadenc_channel0SearchPattern = 0;
 	quadenc_channel1SearchPattern = 0;
+#else
+	quadenc_channel0SearchPattern = 7;
+	quadenc_channel1SearchPattern = 7;
+#endif
 	quadenc_channel0Status = 0xFF;
 	quadenc_channel1Status = 0xFF;
 	quadenc_buttonStatus = 0xFF;

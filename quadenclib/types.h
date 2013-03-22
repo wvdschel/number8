@@ -31,8 +31,12 @@ typedef unsigned int 		uint_16;
 typedef unsigned long 		uint_32;
 
 // boolean type
+#ifndef FALSE
 #define FALSE				(0)
+#endif
+#ifndef TRUE
 #define TRUE				(1)
+#endif
 typedef uint_8				BOOL;
 #define NULL				(0)
 

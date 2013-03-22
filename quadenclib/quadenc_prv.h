@@ -37,8 +37,13 @@ typedef enum quadenc_state_enum
 #define QUADENC_NO_TRANSITION_EVENT (1)
 
 // expected transitions
+#ifndef QUADENC_PULLDOWN
 const uint_8 quadenc_cwTransitions[] 	= {8, 0, 15, 7};
 const uint_8 quadenc_ccwTransitions[] 	= {0, 8, 7, 15};
+#else
+const uint_8 quadenc_cwTransitions[] 	= {7, 15, 0, 8};
+const uint_8 quadenc_ccwTransitions[] 	= {15, 7, 8, 0};
+#endif
 
 // ==========================================================================
 // locals

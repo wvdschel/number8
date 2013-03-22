@@ -24,7 +24,7 @@ void initMotors()
 				USART_EIGHT_BIT &
 				USART_CONT_RX &
 				USART_BRGH_HIGH,
-				155); // 20.000.000 / (16 * (64 + 1)) = 19231
+				155); // 48.000.000 / (16 * (155 + 1)) ~= 19231
 }
 
 void setSpeedMotor(short speed, char forward, char reverse)

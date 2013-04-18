@@ -45,6 +45,7 @@ int currDirMotorRight = 0;
 int initialGroundReading[4];	// Initial readings from the ground sensors - this is our reference for "black"
 int initialEyeLeft = 0;			// Initial readings for long distance sensors, to account for noise etc.
 int initialEyeRight = 0;
+int progress = 0;				// Progress as reported by the progress wheel
 
 void ailib_init()
 {
@@ -305,6 +306,9 @@ void readSensors()
 			total += readADC(i);	// reading analog sensors
 		sensor[i] = total / SAMPLE_COUNT;
 	}
+
+	progress = 0;
+	quadenc_getLastChangeCount(&progress);
 }
 
 void setMotors(int direction)
@@ -456,5 +460,11 @@ void printState()
 		printInt(sensor[i]);
 	}
 	puts("");
+
+	// Print progress wheel data
+	printString("Progress measured: ");
+	printInt(progress);
+	puts("");
+
 	puts("-----------------------------------------------------");
 }

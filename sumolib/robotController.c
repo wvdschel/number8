@@ -148,7 +148,7 @@ void main(void) {
 	for(i=0;i<5;i++) {
 		LEDS *= 2;
 		LEDS += 1;
-		delay_s(1);
+		delay_ms(920);
 	} // end of starting procedure
 	clearLCD();
 	appendStringToLCD("EXTERMINATE!");

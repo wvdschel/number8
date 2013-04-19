@@ -9,8 +9,8 @@
 // State switching macro
 #define SWITCH_STATE(nState)	{ printInt(__LINE__); printString(": Switching to new state "); printInt(nState); puts(""); currState = nState; stateTimer = 0; }
 // Motor control macros
-#define MOTOR_LEFT(dir)			currDirMotorLeft = dir; setSpeedMotor1(dir);
-#define MOTOR_RIGHT(dir)		currDirMotorRight = dir; setSpeedMotor2(-(dir));
+#define MOTOR_LEFT(dir)			currDirMotorLeft = dir; setSpeedMotor2(dir);
+#define MOTOR_RIGHT(dir)		currDirMotorRight = dir; setSpeedMotor1(-(dir));
 // Printing macros
 #define MOTOR_STATE(dir)		(dir > 0 ? '^' : (dir < 0 ? 'V' : '-'))
 

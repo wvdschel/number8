@@ -23,11 +23,21 @@
 // Sensor calibration related stuff
 #define DIFF_THRESHOLD 		3			// Maximum difference between two long range sensors, if the diff is higher, the robot will reallign.
 #define DISTANCE_CLOSE		30			// Anything lower than this value is considered close, anything higher is considered infinitely far away
-#define SEEK_ROTATE_TIME 	(int)75 	// How many iterations should we wait before moving the robot to change the search space.
+#define SEEK_ROTATE_TIME 	(int)150 	// How many iterations should we wait before moving the robot to change the search space.
 							 			// To disable this and just turn left all the time, set to 0.
-#define SEEK_MOVE_TIME		(int)60		// How long the robot should move forward before looking around again.
+#define SEEK_MOVE_TIME		(int)100	// How long the robot should move forward before looking around again.
 #define SAMPLE_COUNT		10			// The number of samples for each measurement
+
+#define BLACK_EDGE_WHITE_BOARD 1 
+#ifdef BLACK_EDGE_WHITE_BOARD
+// In my living room, I use a white-ish board with black edges.
+// White values range from 370 to almost 600, black values are always over 800.
+#define WHITE_BLACK_RATIO	0.75
+#else
+// By default, we're using a black board with a white edge.
 #define WHITE_BLACK_RATIO	0.3			// The ratio of readings on a black floor vs a white floor. white <= ratio * black.
+#endif
+
 #define SURVIVE_TIME		10			// How long the robot stays in survival mode after the "threat" has gone away.
 
 #define PROGRESS_WHEEL
@@ -45,7 +55,7 @@ int currDirMotorRight = 0;
 int initialGroundReading[4];	// Initial readings from the ground sensors - this is our reference for "black"
 int initialEyeLeft = 0;			// Initial readings for long distance sensors, to account for noise etc.
 int initialEyeRight = 0;
-int progress = 0;				// Progress as reported by the progress wheel
+int progress = 0;				// Progress as reported by the progress wheel. This value is reset each turn.
 
 void ailib_init()
 {
@@ -191,7 +201,7 @@ void doMove()
 	LEDS = pow(2, 8-currState);
 	if(DEBUG)
 		printState();
-	delay_ms(DEBUG ? 1000 : 100);
+	delay_ms(DEBUG ? 1000 : 15);
 }
 
 int survivalCheck()
@@ -353,19 +363,31 @@ void setMotors(int direction)
 
 int groundSensor(unsigned sensor_dir)
 {
+#ifdef BLACK_EDGE_WHITE_BOARD
 	if(sensor_dir & DIR_FORWARD) {
-		//return sensor[3] < WHITE_BLACK_RATIO * initialGroundReading;
+		if(sensor_dir & DIR_RIGHT)
+			return sensor[2] * WHITE_BLACK_RATIO > initialGroundReading[0];
+		else
+			return sensor[3] * WHITE_BLACK_RATIO > initialGroundReading[1];
+	} else {
+		if(sensor_dir & DIR_LEFT)
+			return sensor[4] * WHITE_BLACK_RATIO > initialGroundReading[2];
+		else
+			return sensor[5] * WHITE_BLACK_RATIO > initialGroundReading[3];
+	}
+#else
+	if(sensor_dir & DIR_FORWARD) {
 		if(sensor_dir & DIR_RIGHT)
 			return sensor[2] < WHITE_BLACK_RATIO * initialGroundReading[0];
 		else
 			return sensor[3] < WHITE_BLACK_RATIO * initialGroundReading[1];
 	} else {
-		//return sensor[5] < WHITE_BLACK_RATIO * initialGroundReading;
 		if(sensor_dir & DIR_LEFT)
 			return sensor[4] < WHITE_BLACK_RATIO * initialGroundReading[2];
 		else
 			return sensor[5] < WHITE_BLACK_RATIO * initialGroundReading[3];
 	}
+#endif
 }
 
 int distanceSensor(unsigned sensor_dir)

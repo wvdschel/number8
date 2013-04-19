@@ -367,24 +367,24 @@ int groundSensor(unsigned sensor_dir)
 #ifdef BLACK_EDGE_WHITE_BOARD
 	if(sensor_dir & DIR_FORWARD) {
 		if(sensor_dir & DIR_RIGHT)
-			return sensor[2] * WHITE_BLACK_RATIO > initialGroundReading[0];
+			return sensor[2] * WHITE_BLACK_RATIO > initialGroundReading[0];  // Front right
 		else
-			return sensor[3] * WHITE_BLACK_RATIO > initialGroundReading[1];
+			return sensor[4] * WHITE_BLACK_RATIO > initialGroundReading[2];  // Front left
 	} else {
 		if(sensor_dir & DIR_LEFT)
-			return sensor[4] * WHITE_BLACK_RATIO > initialGroundReading[2];
+			return sensor[3] * WHITE_BLACK_RATIO > initialGroundReading[1];  // Rear left
 		else
-			return sensor[5] * WHITE_BLACK_RATIO > initialGroundReading[3];
+			return sensor[5] * WHITE_BLACK_RATIO > initialGroundReading[3];  // Rear right
 	}
 #else
 	if(sensor_dir & DIR_FORWARD) {
 		if(sensor_dir & DIR_RIGHT)
 			return sensor[2] < WHITE_BLACK_RATIO * initialGroundReading[0];
 		else
-			return sensor[3] < WHITE_BLACK_RATIO * initialGroundReading[1];
+			return sensor[4] < WHITE_BLACK_RATIO * initialGroundReading[2];
 	} else {
 		if(sensor_dir & DIR_LEFT)
-			return sensor[4] < WHITE_BLACK_RATIO * initialGroundReading[2];
+			return sensor[3] < WHITE_BLACK_RATIO * initialGroundReading[1];
 		else
 			return sensor[5] < WHITE_BLACK_RATIO * initialGroundReading[3];
 	}

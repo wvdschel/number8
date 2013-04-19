@@ -38,7 +38,7 @@
 #define WHITE_BLACK_RATIO	0.3			// The ratio of readings on a black floor vs a white floor. white <= ratio * black.
 #endif
 
-#define SURVIVE_TIME		10			// How long the robot stays in survival mode after the "threat" has gone away.
+#define SURVIVE_TIME		40			// How long the robot stays in survival mode after the "threat" has gone away.
 
 #define PROGRESS_WHEEL
 #define PROGRESS_WHEEL_TIMER 58036		// Internal clock frequency is 48Mhz because of the PLL settings. Using fosc/4 and

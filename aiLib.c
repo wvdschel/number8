@@ -17,12 +17,14 @@
 // Possible states for the robot
 #define STATE_SEEK		 	1			// Looking for the enemy
 #define STATE_DESTROY 		2			// Enemy in front of robot, try to push it
-#define STATE_DESTROY_OVER	3			// Pushing the enemy, a white line has been detected by our front side, so we must be close to the end of the ring
+#define STATE_FLANK			3			// Pushing didn't work, try to get around the enemy.
 #define STATE_SURVIVE	 	4			// White edge detected, move away
 
+
 // Sensor calibration related stuff
-#define DIFF_THRESHOLD 		3			// Maximum difference between two long range sensors, if the diff is higher, the robot will reallign.
-#define DISTANCE_CLOSE		30			// Anything lower than this value is considered close, anything higher is considered infinitely far away
+#define DIFF_THRESHOLD 		5			// Maximum difference between two long range sensors, if the diff is higher, the robot will reallign.
+#define DISTANCE_CLOSE		45			// Anything lower than this value is considered close, anything higher is considered infinitely far away
+#define MIN_DISTANCE_DIFF	5 			// Minimum distance of the 
 #define SEEK_ROTATE_TIME 	(int)150 	// How many iterations should we wait before moving the robot to change the search space.
 							 			// To disable this and just turn left all the time, set to 0.
 #define SEEK_MOVE_TIME		(int)100	// How long the robot should move forward before looking around again.
@@ -403,9 +405,9 @@ int groundSensor(unsigned sensor_dir)
 int distanceSensor(unsigned sensor_dir)
 {
 	if(sensor_dir == DIR_RIGHT)
-		return ((1024 + initialEyeRight) - sensor[0])/30;
+		return ((1024 + initialEyeRight) - sensor[0])/20;
 	else
-		return ((1024 + initialEyeLeft)  - sensor[1])/30;
+		return ((1024 + initialEyeLeft)  - sensor[1])/20;
 }
 
 int pushSensor(unsigned sensor_dir) {
@@ -437,9 +439,8 @@ void printState()
 	case STATE_DESTROY:
 		printString("DESTROY");
 		break;
-	case STATE_DESTROY_OVER:
-		printString("DESTROYO");
-		break;
+	case STATE_FLANK:
+		printString("FLANK");
 	case STATE_SURVIVE:
 		printString("SURVIVE");
 		break;

@@ -204,13 +204,13 @@ void doMove()
 	default:
 		puts("Illegal state");
 		SWITCH_STATE(STATE_SEEK);
-		delay_ms(500);
+		delay_ms(150);
 	}
 
-	LEDS = pow(2, 8-currState);
+	LEDS = currState << 5;
 	if(DEBUG)
 		printState();
-	delay_ms(DEBUG ? 1000 : 15);
+	delay_ms(DEBUG ? 3000 : 15);
 }
 
 int survivalCheck()

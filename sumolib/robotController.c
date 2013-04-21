@@ -130,6 +130,7 @@ void main(void) {
 	while(1) {
 		stopMotors();
 		if(SW_N == PRESSED || SW_S == PRESSED || SW_E == PRESSED || SW_W == PRESSED) {
+			LEDS = 0xFF;
 			ailib_init();
 			break;
 		} else {

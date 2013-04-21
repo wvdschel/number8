@@ -11,6 +11,19 @@ It is equiped with 8 input sources:
 3. 1x digital pressure sensor on the back, to detect an attack from behind (this sensor is colloqually referred to as "the butt-sex-detector").
 4. 1x rotary encoder to measure our forward/backward movement
 
+Media
+-----
+
+A video featuring our first build, number7. It is the robot with double batteries and green-grey scoop. It is also the only robot consistently winning throughout the video, and the only one that does not recieve human help ;)
+
+<iframe width="560" height="315" src="http://www.youtube.com/embed/BkIkCT7gmbQ?list=UU3C5MBTstyEwGa8rNyunuMw" frameborder="0" allowfullscreen></iframe>
+
+Since then, we have made the robot faster (a gear ratio change, resulting in a 9 times faster robot, at the cost of a 9 times lower torque).
+
+We also replaced the scoop, since it was mechanically flawed and it on multiple occasions resulted in our robot being lifted off the ground with all but its last wheels. It now has a bumper made of wheels constantly pushing the enemy away.
+
+The progress wheel was also not present in the first version.
+
 Operating instructions
 ----------------------
 

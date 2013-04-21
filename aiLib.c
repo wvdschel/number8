@@ -46,7 +46,9 @@
 #define PROGRESS_WHEEL_TIMER 58036		// Internal clock frequency is 48Mhz because of the PLL settings. Using fosc/4 and
 										// a prescaler of 1/8 for timer 1 in 16 bit mode, this value gives us ?? ms between
 										// interrupts, not including interrupt processing.
-#define MIN_PROGRESS		1			// Minimal progress to continue pushing. 
+#define MIN_PROGRESS		1			// Minimal progress to continue pushing.
+
+#define SLEEP_TIME			15
 
 // Global vars
 int sensor[7]; 					// Sensor readings
@@ -59,7 +61,12 @@ int initialGroundReading[4];	// Initial readings from the ground sensors - this 
 int initialEyeLeft = 0;			// Initial readings for long distance sensors, to account for noise etc.
 int initialEyeRight = 0;
 int initialEyeAvg = 0;
-int progress = 0;				// Progress as reported by the progress wheel. This value is reset each turn.
+int progress = 0;				// Progress over the past 100 turns combined.
+#define PROGRESS_HISTORY_SIZE	100
+int progressHistory[PROGRESS_HISTORY_SIZE];
+								// Circular buffer of 100 turns raw input from the progress wheel.
+int progressHistoryIndex = 0;	// Current end of the circular buffer.
+int progressRaw = 0;			// Progress as reported by the progress wheel. This value is reset each turn.
 
 void ailib_init()
 {
@@ -167,7 +174,11 @@ void doMove()
 	case STATE_DESTROY:
 		// Shutdown if speed is to low
 #ifdef PROGRESS_WHEEL
-		if(progress < MIN_PROGRESS)
+		if(stateTimer == 0)
+		{
+			wipeProgressHistory();
+		}
+		if(progress < MIN_PROGRESS && stateTimer > PROGRESS_HISTORY_SIZE)
 		{
 			printString("Not enough progress: ");
 			printInt(progress);
@@ -210,7 +221,7 @@ void doMove()
 	LEDS = currState << 5;
 	if(DEBUG)
 		printState();
-	delay_ms(DEBUG ? 3000 : 15);
+	delay_ms(DEBUG ? 3000 : SLEEP_TIME);
 }
 
 int survivalCheck()
@@ -285,9 +296,16 @@ void initState(int direction) {
 	}
 }
 
+void wipeProgressHistory()
+{
+	memset(progressHistory, 0, PROGRESS_HISTORY_SIZE * sizeof(int));
+	progressHistoryIndex = 0;
+}
+
 void initSensors()
 {
 	int i;
+	wipeProgressHistory();
 
 	// Init touch sensors and/or progress wheel
 	TRISEbits.TRISE1 = INPUT;
@@ -328,11 +346,15 @@ void readSensors()
 		sensor[i] = total / SAMPLE_COUNT;
 	}
 
-	progress = 0;
-	quadenc_getLastChangeCount(&progress);
-	if(progress > 127)
-		progress = progress - 255;
-	progress = -progress;	// driving forward gives a negative progress, so we negate it here.
+	progressRaw = 0;
+	quadenc_getLastChangeCount(&progressRaw);
+	if(progressRaw > 127)
+		progressRaw = progressRaw - 255;
+	progressRaw = -progressRaw;	// driving forward gives a negative progress, so we negate it here.
+
+	progress -= progressHistory[progressHistoryIndex];
+	progress += progressRaw;
+	progressHistory[progressHistoryIndex] = progressRaw;
 }
 
 void setMotors(int direction)
@@ -497,7 +519,9 @@ void printState()
 	puts("");
 
 	// Print progress wheel data
-	printString("Progress measured: ");
+	printString("Progress measured in the past ");
+	printInt(SLEEP_TIME * PROGRESS_HISTORY_SIZE);
+	printString("s: ");
 	printInt(progress);
 	puts("");
 

@@ -21,5 +21,6 @@ int distanceSensor(unsigned sensor);
 int pushSensor(unsigned sensor);
 void printState(void);
 int survivalCheck(void);
+void wipeProgressHistory(void);
 
 #endif

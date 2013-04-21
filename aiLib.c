@@ -58,6 +58,7 @@ int currDirMotorRight = 0;
 int initialGroundReading[4];	// Initial readings from the ground sensors - this is our reference for "black"
 int initialEyeLeft = 0;			// Initial readings for long distance sensors, to account for noise etc.
 int initialEyeRight = 0;
+int initialEyeAvg = 0;
 int progress = 0;				// Progress as reported by the progress wheel. This value is reset each turn.
 
 void ailib_init()
@@ -305,6 +306,7 @@ void initSensors()
 
 	initialEyeRight = sensor[0];
 	initialEyeLeft  = sensor[1];
+	initialEyeAvg   = (initialEyeRight + initialEyeLeft) / 2;
 	printString("Initial long distances sensors: ");
 	printInt(initialEyeLeft);
 	printString(" ");

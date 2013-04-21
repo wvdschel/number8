@@ -59,9 +59,14 @@ The four last LEDs of the Dwengo board indicate the state the robot is in:
 	\-------------------------------/
 	  |   |   |   |       |   |_ Rotary encoder feedback
 	  |   |   |   |       |_____ Rotary encoder feedback
-	  |   |   |   |_____________ Not used
+	  |   |   |   |_____________ Flashes when a stall is detected
 	  |   |   |_________________ STATE_SEEK
 	  |   |_____________________ STATE_DESTROY
 	  |_________________________ STATE_SURVIVE
 
 If both LD5 and LD6 are lit, the robot is in STATE_FLANK.
+
+Component references
+--------------------
+
+Rotary encoder: [Sparkfun - COM-09117](https://www.sparkfun.com/products/9117)

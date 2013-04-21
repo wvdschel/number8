@@ -35,7 +35,7 @@ Debugging
 There are two debugging methods available: serial prints and LEDs 4 trough 7 on the Dwengo board.
 
 ### Serial debugging
-Serial debugging is enabled by setting DEBUG to 1 in `serialDebug.h`.
+Serial debugging is enabled by setting `DEBUG` to `1` in `serialDebug.h`.
 
 Since the motor controller is being operated over serial as well, we can't have serial output and motor operation at the same time. When serial debugging is enabled, the motor controller should be disconnected. Because of this reuse of the serial port, this debugging method can only be used for diagnosing sensor reading and state transition issues, but not for logging or debugging the robot in action.
 

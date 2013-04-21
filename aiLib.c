@@ -228,7 +228,7 @@ void doMove()
 		delay_ms(150);
 	}
 
-	LEDS = (currState << 5);
+	LEDS = (LEDS & 0x1F) | (currState << 5);
 	if(DEBUG)
 		printState();
 	delay_ms(DEBUG ? 3000 : SLEEP_TIME);

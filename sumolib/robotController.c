@@ -125,6 +125,19 @@ void main(void) {
 	initLCD();
 	clearLCD();
 
+	appendStringToLCD("Press a key to calibrate sensors.");
+
+	while(1) {
+		stopMotors();
+		if(SW_N == PRESSED || SW_S == PRESSED || SW_E == PRESSED || SW_W == PRESSED) {
+			ailib_init();
+			break;
+		} else {
+			delay_ms(50);
+		}
+	}
+	delay_ms(300);
+
 	appendStringToLCD("(S)tart me");
 	while(!started) {
 		stopMotors();
@@ -141,7 +154,7 @@ void main(void) {
 			delay_ms(50);
 		}
 	}
-	// 5 seconds waiting
+	// ~5 seconds waiting
 	clearLCD();
 	appendStringToLCD("Start counting");
 	LEDS = 0;

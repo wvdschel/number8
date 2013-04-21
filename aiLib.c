@@ -44,6 +44,7 @@
 #define PROGRESS_WHEEL_TIMER 58036		// Internal clock frequency is 48Mhz because of the PLL settings. Using fosc/4 and
 										// a prescaler of 1/8 for timer 1 in 16 bit mode, this value gives us ?? ms between
 										// interrupts, not including interrupt processing.
+#define MIN_PROGRESS		1			// Minimal progress to continue pushing. 
 
 // Global vars
 int sensor[7]; 					// Sensor readings
@@ -161,15 +162,20 @@ void doMove()
 		}
 		break;
 	case STATE_DESTROY:
+		// Shutdown if speed is to low
+#ifdef PROGRESS_WHEEL
+		if(progress < MIN_PROGRESS)
+		{
+			printString("Not enough progress: ");
+			printInt(progress);
+			puts(". Shutting down.");
+			setMotors(0);
+			delay_ms(500);
+		}
+#endif
 		// Switch state if we're driving over the white line.
 		if(survivalCheck())
 			break;
-		//if(groundSensor(DIR_FORWARD | DIR_RIGHT) || groundSensor(DIR_FORWARD | DIR_LEFT))
-		//{
-		//	SWITCH_STATE(STATE_DESTROY_OVER);
-		//}
-		// No break: code shared with DESTROY_OVER
-	case STATE_DESTROY_OVER:
 		if(distanceLeft > DISTANCE_CLOSE && distanceRight > DISTANCE_CLOSE)
 		{
 			// Target lost, go back to searching
@@ -320,6 +326,9 @@ void readSensors()
 
 	progress = 0;
 	quadenc_getLastChangeCount(&progress);
+	if(progress > 127)
+		progress = progress - 255;
+	progress = -progress;	// driving forward gives a negative progress, so we negate it here.
 }
 
 void setMotors(int direction)

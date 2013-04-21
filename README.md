@@ -8,10 +8,10 @@ It is equiped with 8 input sources:
 
 1. 2x analog infrared distance sensors on the front
 2. 4x analog color sensors on the bottom, one on each corner of the robot, to detect the edge of the arena
-3. 1x digital pressure sensor on the back, to detect an attack from behind (this sensor is colloqually referred to as "the but-sex-detector").
+3. 1x digital pressure sensor on the back, to detect an attack from behind (this sensor is colloqually referred to as "the butt-sex-detector").
 4. 1x rotary encoder to measure our forward/backward movement
 
-Operation instructions
+Operating instructions
 ----------------------
 
 As per the contest rules, the robot operates autonomously during combat. The only operations a meatbag assistant should perform is to start the robot. This is done as follows:
@@ -25,7 +25,7 @@ Code
 ----
 We started from a modified version of the "sumolib" provided by the contest organization. We modified it to use our motor controller and to print to serial instead of the LCD.
 
-Most of the logic is contained in aiLib.c. The robot operates as a state machine, switching between a search state, a destroy state, a flanking state and a survival state based on its sensor readings. Transitions can easily be found by searching for SWITCH_STATE.
+Most of the logic is contained in aiLib.c. The robot operates as a state machine, switching between a search state, a destroy state, a flanking state and a survival state based on its sensor readings. Transitions can easily be found by searching for `SWITCH_STATE`.
 
 The `sumolib` directory contains the modified version of the sumolib we use, while `quadenclib` contains code we plucked off the internet (TODO: add link) for using our rotary encoder.
 

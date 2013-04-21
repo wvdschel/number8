@@ -130,7 +130,7 @@ void main(void) {
 	while(1) {
 		stopMotors();
 		if(SW_N == PRESSED || SW_S == PRESSED || SW_E == PRESSED || SW_W == PRESSED) {
-			LEDS = 0xFF;
+			LEDS = 0xF0;
 			ailib_init();
 			break;
 		} else {
@@ -138,6 +138,7 @@ void main(void) {
 		}
 	}
 	delay_ms(300);
+	LEDS = 0;
 
 	appendStringToLCD("(S)tart me");
 	while(!started) {

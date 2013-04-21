@@ -30,7 +30,7 @@
 #define SEEK_MOVE_TIME		(int)100	// How long the robot should move forward before looking around again.
 #define SAMPLE_COUNT		10			// The number of samples for each measurement
 
-#define BLACK_EDGE_WHITE_BOARD 1 
+//#define BLACK_EDGE_WHITE_BOARD
 #ifdef BLACK_EDGE_WHITE_BOARD
 // In my living room, I use a white-ish board with black edges.
 // White values range from 370 to almost 600, black values are always over 800.
@@ -46,27 +46,27 @@
 #define PROGRESS_WHEEL_TIMER 58036		// Internal clock frequency is 48Mhz because of the PLL settings. Using fosc/4 and
 										// a prescaler of 1/8 for timer 1 in 16 bit mode, this value gives us ?? ms between
 										// interrupts, not including interrupt processing.
-#define MIN_PROGRESS		1			// Minimal progress to continue pushing.
+#define MIN_PROGRESS		6			// Minimal progress to continue pushing.
 
-#define SLEEP_TIME			15
+#define SLEEP_TIME			((int)15)
 
 // Global vars
-int sensor[7]; 					// Sensor readings
-int currState = STATE_SEEK;		// Current state of the robot
-int stateTimer = -1;			// How long have we been in the current state?
-int currDirection = 0;			// Current direction of the engines
-int currDirMotorLeft = 0;		// Direction of each motor
-int currDirMotorRight = 0;
-int initialGroundReading[4];	// Initial readings from the ground sensors - this is our reference for "black"
-int initialEyeLeft = 0;			// Initial readings for long distance sensors, to account for noise etc.
-int initialEyeRight = 0;
-int initialEyeAvg = 0;
-int progress = 0;				// Progress over the past 100 turns combined.
-#define PROGRESS_HISTORY_SIZE	100
-int progressHistory[PROGRESS_HISTORY_SIZE];
-								// Circular buffer of 100 turns raw input from the progress wheel.
-int progressHistoryIndex = 0;	// Current end of the circular buffer.
-int progressRaw = 0;			// Progress as reported by the progress wheel. This value is reset each turn.
+static int sensor[7]; 					// Sensor readings
+static int currState = STATE_SEEK;		// Current state of the robot
+static int stateTimer = -1;				// How long have we been in the current state?
+static int currDirection = 0;			// Current direction of the engines
+static int currDirMotorLeft = 0;		// Direction of each motor
+static int currDirMotorRight = 0;
+static int initialGroundReading[4];		// Initial readings from the ground sensors - this is our reference for "black"
+static int initialEyeLeft = 0;			// Initial readings for long distance sensors, to account for noise etc.
+static int initialEyeRight = 0;
+static int initialEyeAvg = 0;
+static int progress = 0;				// Progress over the past 100 turns combined.
+#define PROGRESS_HISTORY_SIZE	((int)100)
+static int progressHistory[PROGRESS_HISTORY_SIZE] = {0};
+										// Circular buffer of 100 turns raw input from the progress wheel.
+static int progressHistoryIndex = 0;	// Current end of the circular buffer.
+static int progressRaw = 0;				// Progress as reported by the progress wheel. This value is reset each turn.
 
 void ailib_init()
 {
@@ -172,24 +172,34 @@ void doMove()
 		}
 		break;
 	case STATE_DESTROY:
-		// Shutdown if speed is to low
+		// Switch state if we're driving over the white line.
+		if(survivalCheck())
+			break;
 #ifdef PROGRESS_WHEEL
-		if(stateTimer == 0)
+		if(stateTimer == 0) // Reset counter if we just started pushing
 		{
 			wipeProgressHistory();
 		}
+		// Once we have filled up the history, and our combined progress is insufficient, consider flanking
 		if(progress < MIN_PROGRESS && stateTimer > PROGRESS_HISTORY_SIZE)
 		{
 			printString("Not enough progress: ");
 			printInt(progress);
-			puts(". Shutting down.");
-			setMotors(0);
-			delay_ms(500);
+			puts(".");
+			LEDS |= 0x10;
+			delay_ms(100);
+			LEDS &= ~0x10;
+			delay_ms(100);
+			LEDS |= 0x10;
+			delay_ms(100);
+			LEDS &= ~0x10;
+			delay_ms(100);
+			LEDS |= 0x10;
+			delay_ms(100);
+			LEDS &= ~0x10;
+			delay_ms(100);
 		}
 #endif
-		// Switch state if we're driving over the white line.
-		if(survivalCheck())
-			break;
 		if(distanceLeft > DISTANCE_CLOSE && distanceRight > DISTANCE_CLOSE)
 		{
 			// Target lost, go back to searching
@@ -218,7 +228,7 @@ void doMove()
 		delay_ms(150);
 	}
 
-	LEDS = currState << 5;
+	LEDS = (currState << 5);
 	if(DEBUG)
 		printState();
 	delay_ms(DEBUG ? 3000 : SLEEP_TIME);
@@ -298,7 +308,12 @@ void initState(int direction) {
 
 void wipeProgressHistory()
 {
-	memset(progressHistory, 0, PROGRESS_HISTORY_SIZE * sizeof(int));
+	int i;
+	puts("Wiping progress history.");
+	//memset(progressHistory, 0, sizeof(progressHistory)); // This shit doesn't work.
+	for(i = 0; i < PROGRESS_HISTORY_SIZE; i++)
+		progressHistory[i] = 0;
+	progress = 0;
 	progressHistoryIndex = 0;
 }
 
@@ -355,6 +370,9 @@ void readSensors()
 	progress -= progressHistory[progressHistoryIndex];
 	progress += progressRaw;
 	progressHistory[progressHistoryIndex] = progressRaw;
+	progressHistoryIndex++;
+	if(progressHistoryIndex >= PROGRESS_HISTORY_SIZE)
+		progressHistoryIndex = 0;
 }
 
 void setMotors(int direction)
@@ -503,7 +521,7 @@ void printState()
 		printString("LEFT ");
 	if(pushSensor(DIR_BACK))
 		printString("REAR");
-	puts("");	
+	puts("");
 	
 	// Print long distance sensors
 	printString("Distance sensors: ");
@@ -521,8 +539,28 @@ void printState()
 	// Print progress wheel data
 	printString("Progress measured in the past ");
 	printInt(SLEEP_TIME * PROGRESS_HISTORY_SIZE);
-	printString("s: ");
+	printString("ms: ");
 	printInt(progress);
+	puts("");
+
+	puts("Progress history: ");
+	for(i = progressHistoryIndex - 1; i > progressHistoryIndex - PROGRESS_HISTORY_SIZE; i--)
+	{
+		int realI = i < 0 ? PROGRESS_HISTORY_SIZE + i : i;
+		printString("\t[");
+		printInt(realI);
+		printString("]");
+		printInt(progressHistory[realI]);
+		if( (progressHistoryIndex - i) % 5 )
+			printString(" ");
+		else
+		{
+			puts("");
+		}
+	}
+	puts("");
+	printString("Position in progress window: ");
+	printInt(progressHistoryIndex);
 	puts("");
 
 	puts("-----------------------------------------------------");

@@ -62,6 +62,6 @@ The four last LEDs of the Dwengo board indicate the state the robot is in:
 	  |   |   |   |_____________ Not used
 	  |   |   |_________________ STATE_SEEK
 	  |   |_____________________ STATE_DESTROY
-	  |_________________________ SETATE_SURVIVE
+	  |_________________________ STATE_SURVIVE
 
 If both LD5 and LD6 are lit, the robot is in STATE_FLANK.

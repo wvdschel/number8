@@ -19,7 +19,7 @@
 #ifndef __QUADENC_H_
 #define __QUADENC_H_
 
-#include "types.h"
+#include "quadenclib/types.h"
 
 // ==========================================================================
 // interfaces

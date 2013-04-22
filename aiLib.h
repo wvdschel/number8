@@ -1,7 +1,7 @@
 #ifndef AI_LIB_H
 #define AI_LIB_H
 
-#include "dwengoADC.h"
+#include "sumolib/dwengoADC.h"
 
 #define DIR_BACK 	1
 #define DIR_FORWARD 2

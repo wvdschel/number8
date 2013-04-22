@@ -12,8 +12,8 @@
 #ifndef DWENGO_LCD_H
 #define DWENGO_LCD_H
 
-#include "dwengoBoard.h"
-#include "dwengoDelay.h"
+#include "sumolib/dwengoBoard.h"
+#include "sumolib/dwengoDelay.h"
 
 // Properties
 #define LCD_WIDTH       16

@@ -9,7 +9,7 @@
  * (c) Dwengo vzw - http://www.dwengo.org
  */
 
-#include "dwengoLCD.h"
+#include "sumolib/dwengoLCD.h"
 #include "serialDebug.h"
 #include <stdlib.h>
 

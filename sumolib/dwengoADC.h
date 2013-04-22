@@ -12,7 +12,7 @@
 #ifndef DWENGO_ADC_H
 #define DWENGO_ADC_H
 
-#include "dwengoBoard.h"
+#include "sumolib/dwengoBoard.h"
 
 // Functions
 void initADC(void);   // Call this function to initialise the analog inputs of the board

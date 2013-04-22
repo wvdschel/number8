@@ -100,10 +100,10 @@
 
 // include libraries
 #include <p18f4550.h>
-#include "dwengoDelay.h"
+#include "sumolib/dwengoDelay.h"
 
 //#ifndef NO_LCD
-#include "dwengoLCD.h"
+#include "sumolib/dwengoLCD.h"
 //#endif
 
 // intialisation routine for the board

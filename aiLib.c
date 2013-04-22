@@ -2,9 +2,9 @@
 
 #include "util.h"
 #include "aiLib.h"
-#include "dwengoMotor.h"
+#include "sumolib/dwengoMotor.h"
 #include "serialDebug.h"
-#include "quadenc.h"
+#include "quadenclib/quadenc.h"
 
 // State switching macro
 #define SWITCH_STATE(nState)	{ printInt(__LINE__); printString(": Switching to new state "); printInt(nState); puts(""); currState = nState; stateTimer = 0; }
@@ -24,7 +24,6 @@
 // Sensor calibration related stuff
 #define DIFF_THRESHOLD 		5			// Maximum difference between two long range sensors, if the diff is higher, the robot will reallign.
 #define DISTANCE_CLOSE		45			// Anything lower than this value is considered close, anything higher is considered infinitely far away
-#define MIN_DISTANCE_DIFF	5 			// Minimum distance of the 
 #define SEEK_ROTATE_TIME 	(int)150 	// How many iterations should we wait before moving the robot to change the search space.
 							 			// To disable this and just turn left all the time, set to 0.
 #define SEEK_MOVE_TIME		(int)100	// How long the robot should move forward before looking around again.

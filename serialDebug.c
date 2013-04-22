@@ -1,7 +1,7 @@
 #include "serialDebug.h"
 #include "util.h"
 #include <usart.h>
-#include "dwengoBoard.h"
+#include "sumolib/dwengoBoard.h"
 
 char buffer[2];
 

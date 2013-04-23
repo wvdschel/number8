@@ -182,21 +182,6 @@ void doMove()
 		// Once we have filled up the history, and our combined progress is insufficient, consider flanking
 		if(progress < MIN_PROGRESS && stateTimer > PROGRESS_HISTORY_SIZE)
 		{
-			printString("Not enough progress: ");
-			printInt(progress);
-			puts(".");
-			LEDS |= 0x10;
-			delay_ms(100);
-			LEDS &= ~0x10;
-			delay_ms(100);
-			LEDS |= 0x10;
-			delay_ms(100);
-			LEDS &= ~0x10;
-			delay_ms(100);
-			LEDS |= 0x10;
-			delay_ms(100);
-			LEDS &= ~0x10;
-			delay_ms(100);
 		}
 #endif
 		if(distanceLeft > DISTANCE_CLOSE && distanceRight > DISTANCE_CLOSE)

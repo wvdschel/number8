@@ -533,26 +533,31 @@ void printState()
 	printInt(SLEEP_TIME * PROGRESS_HISTORY_SIZE);
 	printString("ms: ");
 	printInt(progress);
-	puts("");
-
-	puts("Progress history: ");
-	for(i = progressHistoryIndex - 1; i > progressHistoryIndex - PROGRESS_HISTORY_SIZE; i--)
-	{
-		int realI = i < 0 ? PROGRESS_HISTORY_SIZE + i : i;
-		printString("\t[");
-		printInt(realI);
-		printString("]");
-		printInt(progressHistory[realI]);
-		if( (progressHistoryIndex - i) % 5 )
-			printString(" ");
-		else
-		{
-			puts("");
-		}
-	}
-	puts("");
-	printString("Position in progress window: ");
+	printString(" (");
+	printInt(progressRaw);
+	printString(", ");
 	printInt(progressHistoryIndex);
+	puts(")");
+
+	if(progressHistoryIndex == PROGRESS_HISTORY_SIZE)
+	{
+		puts("Progress history: ");
+		for(i = progressHistoryIndex - 1; i > progressHistoryIndex - PROGRESS_HISTORY_SIZE; i--)
+		{
+			int realI = i < 0 ? PROGRESS_HISTORY_SIZE + i : i;
+			printString("\t[");
+			printInt(realI);
+			printString("]");
+			printInt(progressHistory[realI]);
+			if( (progressHistoryIndex - i) % 5 )
+				printString(" ");
+			else
+			{
+				puts("");
+			}
+		}
+		puts("");
+	}
 	puts("");
 
 	puts("-----------------------------------------------------");

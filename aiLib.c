@@ -323,7 +323,10 @@ void initSensors()
 		initialGroundReading[i] = sensor[2+i];
 	printString("Initial black value: ");
 	for(i = 0; i < 4; i++)
+	{
 		printInt(initialGroundReading[i]);
+		printString(" ");
+	}
 	puts("");
 
 	initialEyeRight = sensor[0];

@@ -213,15 +213,20 @@ void doMove()
 	}
 
 	LEDS = (LEDS & 0x1F) | (currState << 5);
-	if(DEBUG)
+	if(DEBUG && stateTimer % 25 == 0)
 		printState();
-	delay_ms(DEBUG ? 3000 : SLEEP_TIME);
+	delay_ms(SLEEP_TIME);
 }
 
 int survivalCheck()
 {
+	if(pushSensor(DIR_BACK))
+	{
+		setMotors(0);
+		return TRUE;
+	}
 	//return FALSE;
-	if((groundSensor(DIR_FORWARD | DIR_LEFT) && groundSensor(DIR_FORWARD | DIR_RIGHT)) || pushSensor(DIR_BACK))
+	if((groundSensor(DIR_FORWARD | DIR_LEFT) && groundSensor(DIR_FORWARD | DIR_RIGHT)))
 	{
 		puts("Line in front");
 		setMotors(DIR_BACK);

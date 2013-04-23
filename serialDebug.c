@@ -56,7 +56,7 @@ void printChar(char c) {
 		putcUSART('$');*/
 	/*putcUSART(c);*/
 
-	buffer[0] = c;
+	buffer[0] = c & 0x7F;
 	putsUSART(buffer);
 }
 

@@ -6,12 +6,14 @@
 short speedMotor1;
 short speedMotor2;
 
+#define USE_MOTORS 1
+
 void initMotors()
 {
 	speedMotor1 = 0;
 	speedMotor2 = 0;
 
-	if(DEBUG)
+	if(!USE_MOTORS)
 		return;
 
 	//CloseUSART();
@@ -39,13 +41,17 @@ void setSpeedMotor(short speed, char forward, char reverse)
 		printInt((int)speedData);
 		puts("");
 	}
-	else
-	{
-		while(BusyUSART());	
-		putcUSART(speed >= 0 ? (unsigned const char)forward : (unsigned const char)reverse);
-		while(BusyUSART());
-		putcUSART(speedData);
-	}
+
+	if(!USE_MOTORS)
+		return;
+	while(BusyUSART());	
+	putcUSART(0x80);
+	while(BusyUSART());	
+	putcUSART(0x07);
+	while(BusyUSART());	
+	putcUSART(speed >= 0 ? (unsigned const char)forward : (unsigned const char)reverse);
+	while(BusyUSART());
+	putcUSART(speedData);
 }
 
 void setSpeedMotor1(short speed)
@@ -60,7 +66,7 @@ void setSpeedMotor1(short speed)
 			printInt(speedMotor2);
 			puts("]");
 		}
-		setSpeedMotor(speed, (unsigned const char)0xCE, (unsigned const char)0xCD);
+		setSpeedMotor(speed, (unsigned const char)0x4E, (unsigned const char)0x4D);
 
 		speedMotor1 = speed;
 	}
@@ -78,7 +84,7 @@ void setSpeedMotor2(short speed)
 			printInt(speed);
 			puts("]");
 		}
-		setSpeedMotor(speed, (unsigned const char)0xC6, (unsigned const char)0xC5);
+		setSpeedMotor(speed, (unsigned const char)0x46, (unsigned const char)0x45);
 
 		speedMotor2 = speed;
 	}

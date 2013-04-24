@@ -2,7 +2,8 @@
 #define SERIAL_DEBUG_H
 
 // If debugging, serial will be used for printing debug info, otherwise motors will be controlled over serial
-#define DEBUG 0
+#define DEBUG 1
+#define USE_MOTORS 0
 
 void initDebug(void);
 

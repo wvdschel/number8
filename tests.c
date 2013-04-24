@@ -7,7 +7,7 @@ void testRotation()
 {
 	int speed, i;
 	puts("Testing rotation speed.");
-	for(speed = 1024; speed > 0; speed -= 128)
+	for(speed = 1023; speed > 0; speed -= 128)
 	{
 		for(i = 0; i < 4; i++)
 		{
@@ -24,7 +24,7 @@ void testRotation()
 			MOTOR_LEFT(left);
 			MOTOR_RIGHT(right);
 
-			for(j = 0; j < EYES_DATA; i++)
+			for(j = 0; j < EYES_DATA; j++)
 			{
 				readSensors();
 				data[j+EYES_DATA] = distanceSensor(DIR_LEFT);
@@ -67,10 +67,39 @@ void testRotation()
 		delay_ms(500);
 }
 
+void driveUntilWhite()
+{
+	while(1)
+	{
+		MOTOR_LEFT(900);
+		MOTOR_RIGHT(900);
+		delay_ms(1000);
+		while(1)
+		{
+			readSensors();
+			if(	groundSensor(DIR_FORWARD | DIR_RIGHT)  || groundSensor(DIR_BACK | DIR_RIGHT) ||
+				groundSensor(DIR_FORWARD | DIR_LEFT) || groundSensor(DIR_BACK | DIR_LEFT))
+				break;
+			delay_ms(15);
+		}
+		MOTOR_LEFT(-900);
+		MOTOR_RIGHT(-900);
+		delay_ms(1000);
+		while(1)
+		{
+			readSensors();
+			if(	groundSensor(DIR_FORWARD | DIR_RIGHT)  || groundSensor(DIR_BACK | DIR_RIGHT) ||
+				groundSensor(DIR_FORWARD | DIR_LEFT) || groundSensor(DIR_BACK | DIR_LEFT))
+				break;
+			delay_ms(15);
+		}
+	}
+}
+
 void testBrakes()
 {
 	int speed, i;
-	for(speed = 1024; speed > 0; speed -= 128)
+	for(speed = 1023; speed > 0; speed -= 128)
 	{
 		for(i = 0; i < 4; i++)
 		{
@@ -114,7 +143,11 @@ void testBrakes()
 				distance_since_braking += progressRaw;
 				delay_ms(SLEEP_TIME);
 				brake_time += 1;
-			} while(progressRaw >= 0);
+			} while(
+				   // If this is a forward braking test, first backward motion makes us exit
+				   (progressRaw >= 0 && realspeed > 0)
+				   // If this is a backward braking test, first forward motion makes us exit
+				|| (progressRaw <= 0 && realspeed < 0));
 
 			MOTOR_LEFT(0);
 			MOTOR_RIGHT(0);
@@ -155,6 +188,7 @@ void testBrakes()
 			printString("Distance travelled: ");
 			printInt(distance_since_braking);
 			puts("");
+			delay_ms(1000);
 		}
 	}
 

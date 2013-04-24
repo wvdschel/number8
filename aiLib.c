@@ -356,7 +356,7 @@ void readSensors()
 	progressRaw = 0;
 	quadenc_getLastChangeCount(&progressRaw);
 	if(progressRaw > 127)
-		progressRaw = progressRaw - 255;
+		progressRaw = progressRaw - 256;
 	progressRaw = -progressRaw;	// driving forward gives a negative progress, so we negate it here.
 
 	progress -= progressHistory[progressHistoryIndex];

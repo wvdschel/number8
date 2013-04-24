@@ -45,7 +45,7 @@
 #define PROGRESS_WHEEL_TIMER 58036		// Internal clock frequency is 48Mhz because of the PLL settings. Using fosc/4 and
 										// a prescaler of 1/8 for timer 1 in 16 bit mode, this value gives us ?? ms between
 										// interrupts, not including interrupt processing.
-#define MIN_PROGRESS		6			// Minimal progress to continue pushing.
+#define MIN_PROGRESS		2			// Minimal progress to continue pushing.
 
 #define SLEEP_TIME			((int)15)
 
@@ -61,7 +61,7 @@ static int initialEyeLeft = 0;			// Initial readings for long distance sensors, 
 static int initialEyeRight = 0;
 static int initialEyeAvg = 0;
 static int progress = 0;				// Progress over the past 100 turns combined.
-#define PROGRESS_HISTORY_SIZE	((int)100)
+#define PROGRESS_HISTORY_SIZE	((int)15)
 static int progressHistory[PROGRESS_HISTORY_SIZE] = {0};
 										// Circular buffer of 100 turns raw input from the progress wheel.
 static int progressHistoryIndex = 0;	// Current end of the circular buffer.
@@ -209,7 +209,7 @@ void doMove()
 	default:
 		puts("Illegal state");
 		SWITCH_STATE(STATE_SEEK);
-		delay_ms(150);
+		delay_ms(SLEEP_TIME * 10);
 	}
 
 	LEDS = (LEDS & 0x1F) | (currState << 5);

@@ -6,8 +6,6 @@
 short speedMotor1;
 short speedMotor2;
 
-#define USE_MOTORS 1
-
 void initMotors()
 {
 	speedMotor1 = 0;
@@ -35,11 +33,11 @@ void setSpeedMotor(short speed, char forward, char reverse)
 
 	if(DEBUG)
 	{
-		printString("Code to motor: ");
-		printInt((int)(speed >= 0 ? (unsigned const char)forward : (unsigned const char)reverse));
-		printString(" ");
-		printInt((int)speedData);
-		puts("");
+		//printString("Code to motor: ");
+		//printInt((int)(speed >= 0 ? (unsigned const char)forward : (unsigned const char)reverse));
+		//printString(" ");
+		//printInt((int)speedData);
+		//puts("");
 	}
 
 	if(!USE_MOTORS)
@@ -60,11 +58,11 @@ void setSpeedMotor1(short speed)
 	{
 		if(DEBUG)
 		{
-			printString("Changing motor setting, now is [left = ");
-			printInt(speed);
-			printString("] and [right = ");
-			printInt(speedMotor2);
-			puts("]");
+			//printString("Changing motor setting, now is [left = ");
+			//printInt(speed);
+			//printString("] and [right = ");
+			//printInt(speedMotor2);
+			//puts("]");
 		}
 		setSpeedMotor(speed, (unsigned const char)0x4E, (unsigned const char)0x4D);
 

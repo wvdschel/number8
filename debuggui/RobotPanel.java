@@ -17,6 +17,7 @@ public class RobotPanel extends JPanel {
 		int w = 250;
 		int h = 250;
 		int dh = 30;
+		int space = 5;
 		
 		int dx = (getWidth() - w)/2;
 		int dy = (getHeight() - h)/2;
@@ -28,14 +29,17 @@ public class RobotPanel extends JPanel {
 			
 			FontMetrics fontMetrics = g.getFontMetrics();
 			
+			// long distance sensors
 			g.drawString(sensors[1], x + w / 4, y + h / 5);
 			g.drawString(sensors[0], x + 3 * w / 4 - fontMetrics.stringWidth(sensors[0]), y + h / 5);
 			
-			g.drawString(sensors[2], x, y + fontMetrics.getHeight());
-			g.drawString(sensors[3], x + w - fontMetrics.stringWidth(sensors[3]), y + fontMetrics.getHeight());
-			g.drawString(sensors[4], x, y + h - dh);
-			g.drawString(sensors[5], x + w - fontMetrics.stringWidth(sensors[5]), y + h - dh);
+			// ground sensors
+			g.drawString(sensors[4], x + space, y + fontMetrics.getHeight() + space);
+			g.drawString(sensors[2], x - space + w - fontMetrics.stringWidth(sensors[2]), y + fontMetrics.getHeight() + space);
+			g.drawString(sensors[3], x + space, y + h - dh - fontMetrics.getDescent() - space);
+			g.drawString(sensors[5], x - space + w - fontMetrics.stringWidth(sensors[5]), y + h - dh - fontMetrics.getDescent() - space);
 			
+			// push sensor
 			g.setColor(sensors[6].equals("0") ? Color.RED : Color.GREEN);
 			g.fillRect(x, y + h - dh, w, dh);
 			

@@ -29,19 +29,29 @@ public class Main {
 					String line = reader.readLine();
 					
 					while(line != null){
+						
+						boolean update = true;
 
 						if(line.startsWith("Raw sensor readings: ")){
 							
 							String[] rawSensors = line.split(":")[1].trim().split(" ");
-							System.arrayCopy(rawSensors, 0, sensors, 0, 6);
+							System.arraycopy(rawSensors, 0, sensors, 0, 6);
 						} 
 						else if(line.startsWith("Current push sensors being pressed: ")) {
 						
-							
+							String pushSensor = line.split(":")[1].trim();
+							sensors[6] = pushSensor.equals("REAR") ? "0" : "-1";
+						}
+						else{
+						
+							update = false;
 						}
 
-						robotPanel.sensors = sensors;
-						window.repaint();
+						if(update){
+						
+							robotPanel.sensors = sensors;
+							window.repaint();
+						}
 						
 						line = reader.readLine();
 					}

@@ -48,7 +48,7 @@ There are two debugging methods available: serial prints and LEDs 4 trough 7 on 
 ### Serial debugging
 Serial debugging is enabled by setting `DEBUG` to `1` in `serialDebug.h`.
 
-Since the motor controller is being operated over serial as well, we can't have serial output and motor operation at the same time. When serial debugging is enabled, the motor controller should be disconnected. Because of this reuse of the serial port, this debugging method can only be used for diagnosing sensor reading and state transition issues, but not for logging or debugging the robot in action.
+Since the motor controller is being operated over serial as well, we also have some garbage from the motor commands on the serial, and we can't print high bytes.
 
 ### LED debugging
 The four last LEDs of the Dwengo board indicate the state the robot is in:
@@ -70,3 +70,5 @@ Component references
 --------------------
 
 Rotary encoder: [Sparkfun - COM-09117](https://www.sparkfun.com/products/9117)
+Long range sensors: [Sharp GP2Y0A21YK0F](http://ieeesb.elis.ugent.be/sites/ieeesb.elis.ugent.be/files/gp2y0a21yk_e.pdf)
+Ground sensors: [Vishay TCRT5000](http://ieeesb.elis.ugent.be/sites/ieeesb.elis.ugent.be/files/tcrt5000.pdf)

@@ -69,30 +69,82 @@ void testRotation()
 
 void driveUntilWhite()
 {
+	int speed = 800;
 	while(1)
 	{
-		MOTOR_LEFT(900);
-		MOTOR_RIGHT(900);
-		delay_ms(1000);
+		int j = 0, i;
+		MOTOR_LEFT(speed);
+		MOTOR_RIGHT(speed);
+		/*for(i = 0; i < 50; i++)
+		{
+			if(i % 10 == 0)
+			{
+				readSensors();
+				printState();
+			}
+			delay_ms(20);
+			if(pushSensor(DIR_BACK))
+				break;
+		}*/
 		while(1)
 		{
-			readSensors();
+
+			if(j % 25 == 0)
+			{
+				readSensors();
+				printState();
+			}
 			if(	groundSensor(DIR_FORWARD | DIR_RIGHT)  || groundSensor(DIR_BACK | DIR_RIGHT) ||
 				groundSensor(DIR_FORWARD | DIR_LEFT) || groundSensor(DIR_BACK | DIR_LEFT))
 				break;
+
+			data[j%EYES_DATA+EYES_DATA] = distanceSensor(DIR_RIGHT);
+			data[j%EYES_DATA] = distanceSensor(DIR_LEFT);
 			delay_ms(15);
-		}
-		MOTOR_LEFT(-900);
-		MOTOR_RIGHT(-900);
-		delay_ms(1000);
-		while(1)
-		{
-			readSensors();
-			if(	groundSensor(DIR_FORWARD | DIR_RIGHT)  || groundSensor(DIR_BACK | DIR_RIGHT) ||
-				groundSensor(DIR_FORWARD | DIR_LEFT) || groundSensor(DIR_BACK | DIR_LEFT))
+			
+			if(pushSensor(DIR_BACK))
 				break;
-			delay_ms(15);
+
+			j++;
 		}
+
+		MOTOR_LEFT(0);
+		MOTOR_RIGHT(0);
+
+		if(j > EYES_DATA)
+		{
+			i = j - EYES_DATA;
+		} else {
+			i = 0;
+		}
+		
+		printString("Last moments (speed ");
+		printInt(speed);
+		printString("):");
+		for(; i < j; i++)
+		{
+			printString(" [");
+			printInt(j);
+			printString("] L=");
+			printInt(data[j % EYES_DATA]);
+			printString("] R=");
+			printInt(data[EYES_DATA + j % EYES_DATA]);
+		}
+
+		speed = -speed;
+
+		break;
+		if(pushSensor(DIR_BACK))
+			break;
+	}
+
+	MOTOR_LEFT(0);
+	MOTOR_RIGHT(0);
+	while(1)
+	{
+		readSensors();
+		printState();
+		delay_ms(300);
 	}
 }
 
@@ -179,7 +231,7 @@ void testBrakes()
 			printString("Last turns: ");
 			for(; j < brake_time; j++)
 			{
-				printString("[");
+				printString(" [");
 				printInt(j);
 				printString("]");
 				printInt(data[ACCELERATE_TURNS+j % ACCELERATE_TURNS]);

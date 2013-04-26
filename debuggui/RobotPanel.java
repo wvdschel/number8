@@ -6,24 +6,22 @@ import javax.swing.JPanel;
 
 public class RobotPanel extends JPanel {
 
+	private static int x = 0;
+	private static int y = 0;
+	private static int w = 250;
+	private static int h = 250;
+	private static int dh = 30;
+	private static int size = 50;
+	
 	public String[] sensors;
 	
 	public RobotPanel(){}
 	
 	public void paintComponent(Graphics g){
 		
-		int x = 0;
-		int y = 0;
-		int w = 250;
-		int h = 250;
-		int dh = 30;
-		int space = 5;
-		
 		int dx = (getWidth() - w)/2;
 		int dy = (getHeight() - h)/2;
 		g.translate(dx, dy);
-		
-		g.drawRect(x, y, w, h - dh);
 		
 		if(sensors != null){
 			
@@ -32,12 +30,12 @@ public class RobotPanel extends JPanel {
 			// long distance sensors
 			g.drawString(sensors[1], x + w / 4, y + h / 5);
 			g.drawString(sensors[0], x + 3 * w / 4 - fontMetrics.stringWidth(sensors[0]), y + h / 5);
-			
+
 			// ground sensors
-			g.drawString(sensors[4], x + space, y + fontMetrics.getHeight() + space);
-			g.drawString(sensors[2], x - space + w - fontMetrics.stringWidth(sensors[2]), y + fontMetrics.getHeight() + space);
-			g.drawString(sensors[3], x + space, y + h - dh - fontMetrics.getDescent() - space);
-			g.drawString(sensors[5], x - space + w - fontMetrics.stringWidth(sensors[5]), y + h - dh - fontMetrics.getDescent() - space);
+			drawGroundSensor(g, sensors[4], x, y);
+			drawGroundSensor(g, sensors[2], x + w - size, y);
+			drawGroundSensor(g, sensors[3], x, y + h - size - dh);
+			drawGroundSensor(g, sensors[5], x + w - size, y + h - size - dh);
 			
 			// push sensor
 			g.setColor(sensors[6].equals("0") ? Color.RED : Color.GREEN);
@@ -46,7 +44,27 @@ public class RobotPanel extends JPanel {
 			g.setColor(Color.BLACK);
 			g.drawRect(x, y + h - dh, w, dh);
 		}
+
+		g.drawRect(x, y, w, h - dh);
 		
 		g.translate(-dx, -dy);
+	}
+	
+	private void drawGroundSensor(Graphics g, String sensorValue, int x, int y){
+
+		FontMetrics fontMetrics = g.getFontMetrics();
+		int value = Integer.parseInt(sensorValue);
+		
+		g.setColor(value > 100 ? Color.BLACK : Color.WHITE);
+		g.fillRect(x, y, size, size);
+		
+		g.setColor(Color.BLACK);
+		g.drawRect(x, y, size, size);
+		
+		int dx = (size - fontMetrics.stringWidth(sensorValue))/2;
+		int dy = (size - fontMetrics.getHeight())/2 + fontMetrics.getHeight();
+		
+		g.setColor(value > 100 ? Color.WHITE : Color.BLACK);
+		g.drawString(sensorValue, x + dx, y + dy);
 	}
 }

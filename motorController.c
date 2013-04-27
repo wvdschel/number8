@@ -76,11 +76,11 @@ void setSpeedMotor2(short speed)
 	{
 		if(DEBUG)
 		{
-			printString("Changing motor setting, now is [left = ");
-			printInt(speedMotor1);
-			printString("] and [right = ");
-			printInt(speed);
-			puts("]");
+			//printString("Changing motor setting, now is [left = ");
+			//printInt(speedMotor1);
+			//printString("] and [right = ");
+			//printInt(speed);
+			//puts("]");
 		}
 		setSpeedMotor(speed, (unsigned const char)0x46, (unsigned const char)0x45);
 

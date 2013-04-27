@@ -45,9 +45,9 @@
 #define PROGRESS_WHEEL_TIMER 58036		// Internal clock frequency is 48Mhz because of the PLL settings. Using fosc/4 and
 										// a prescaler of 1/8 for timer 1 in 16 bit mode, this value gives us ?? ms between
 										// interrupts, not including interrupt processing.
-#define MIN_PROGRESS		2			// Minimal progress to continue pushing.
+#define MIN_PROGRESS		5			// Minimal progress to continue pushing.
 
-#define SLEEP_TIME			((int)15)
+#define SLEEP_TIME			((int)20)
 
 // Global vars
 static int sensor[7]; 					// Sensor readings
@@ -114,9 +114,13 @@ void ailib_isr()
 #endif
 }
 
+#include "tests.c"
+
 void doMove()
 {
 	int distanceLeft, distanceRight, distanceAvg;
+
+	flankTheBox();
 
 	if(stateTimer >= 1000000)
 		stateTimer = 0;

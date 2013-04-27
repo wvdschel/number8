@@ -3,7 +3,7 @@
 
 // If debugging, serial will be used for printing debug info, otherwise motors will be controlled over serial
 #define DEBUG 1
-#define USE_MOTORS 0
+#define USE_MOTORS 1
 
 void initDebug(void);
 

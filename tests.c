@@ -27,8 +27,8 @@ void testRotation()
 			for(j = 0; j < EYES_DATA; j++)
 			{
 				readSensors();
-				data[j+EYES_DATA] = distanceSensor(DIR_LEFT);
-				data[j] = distanceSensor(DIR_RIGHT);
+				data[EYES_DATA+j] 	= distanceSensor(DIR_LEFT);
+				data[j] 			= distanceSensor(DIR_RIGHT);
 				delay_ms(SLEEP_TIME);
 			}
 
@@ -73,11 +73,16 @@ void driveUntilWhite()
 	while(1)
 	{
 		int j = 0, i;
+		printString("Changing speed to ");
+		printInt(speed);
+		puts("");
+
 		MOTOR_LEFT(speed);
 		MOTOR_RIGHT(speed);
-		/*for(i = 0; i < 50; i++)
+
+		for(i = 0; i < 20; i++)
 		{
-			if(i % 10 == 0)
+			if(i % 5 == 0)
 			{
 				readSensors();
 				printState();
@@ -85,22 +90,23 @@ void driveUntilWhite()
 			delay_ms(20);
 			if(pushSensor(DIR_BACK))
 				break;
-		}*/
+		}
+		
+		puts("Looking for white.");
 		while(1)
 		{
-
+			readSensors();
 			if(j % 25 == 0)
 			{
-				readSensors();
 				printState();
 			}
 			if(	groundSensor(DIR_FORWARD | DIR_RIGHT)  || groundSensor(DIR_BACK | DIR_RIGHT) ||
 				groundSensor(DIR_FORWARD | DIR_LEFT) || groundSensor(DIR_BACK | DIR_LEFT))
 				break;
 
-			data[j%EYES_DATA+EYES_DATA] = distanceSensor(DIR_RIGHT);
-			data[j%EYES_DATA] = distanceSensor(DIR_LEFT);
-			delay_ms(15);
+			data[j%EYES_DATA+EYES_DATA] = sensor[0];
+			data[j%EYES_DATA] = sensor[1];
+			delay_ms(SLEEP_TIME);
 			
 			if(pushSensor(DIR_BACK))
 				break;
@@ -124,22 +130,53 @@ void driveUntilWhite()
 		for(; i < j; i++)
 		{
 			printString(" [");
-			printInt(j);
+			printInt(i);
 			printString("] L=");
-			printInt(data[j % EYES_DATA]);
-			printString("] R=");
-			printInt(data[EYES_DATA + j % EYES_DATA]);
+			printInt(data[i % EYES_DATA]);
+			printString(" R=");
+			printInt(data[EYES_DATA + i % EYES_DATA]);
 		}
 
 		speed = -speed;
 
-		break;
 		if(pushSensor(DIR_BACK))
 			break;
 	}
 
 	MOTOR_LEFT(0);
 	MOTOR_RIGHT(0);
+
+	puts("Aaaand we're done.");
+	while(1)
+	{
+		readSensors();
+		printState();
+		delay_ms(300);
+	}
+}
+
+void oneEyedBrake()
+{
+	int count = 0;
+	MOTOR_LEFT(1023);
+	MOTOR_RIGHT(1023);
+	while(count < 3)
+	{
+		if(initialEyeLeft - sensor[1] >= 20)
+		{
+			count++;
+		} else {
+			count = 0;
+		}
+		readSensors();
+		if(pushSensor(DIR_BACK))
+			break;
+		delay_ms(SLEEP_TIME);
+	}
+	MOTOR_LEFT(0);
+	MOTOR_RIGHT(0);
+
+	puts("Aaaand we're done.");
 	while(1)
 	{
 		readSensors();
@@ -247,4 +284,49 @@ void testBrakes()
 	puts("Done.");
 	while(1)
 		delay_ms(500);
+}
+
+void flankTheBox()
+{
+	int count = 0, stallCount = 0;
+	MOTOR_LEFT(800);
+	MOTOR_RIGHT(800);
+	delay_ms(300);
+
+	while(stallCount < 3)
+	{
+		readSensors();
+		if(count > PROGRESS_HISTORY_SIZE && progress < MIN_PROGRESS)
+		{
+			printString("Progress: ");
+			printInt(progress);
+			puts("");
+			stallCount++;
+		} else
+			stallCount = 0;
+		delay_ms(SLEEP_TIME);
+		count ++;
+	}
+
+	MOTOR_LEFT(-1023);
+	MOTOR_RIGHT(-1023);
+
+	delay_ms(1000);
+
+	MOTOR_LEFT(0);
+
+	delay_ms(1000);
+
+	MOTOR_LEFT(1023);
+	MOTOR_RIGHT(1023);
+
+	delay_ms(1000);
+
+	puts("Aaaand we're done.");
+	while(1)
+	{
+		readSensors();
+		printState();
+		delay_ms(300);
+	}
 }

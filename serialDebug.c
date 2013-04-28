@@ -7,7 +7,7 @@ char buffer[2];
 
 static void printBase64(unsigned char sixbit)
 {
-	sixbit &= 63
+	sixbit &= 63;
 	if(sixbit < 26)
 	{
 		printChar('A'+sixbit);
@@ -86,21 +86,6 @@ void printChar(char c)
 
 	buffer[0] = c & 0x7F;
 	putsUSART(buffer);
-}
-
-void printString64(char* message)
-{
-	if(!DEBUG)
-		return;
-
-	char leftOver 		= 0;
-	char leftOverBits 	= 0;
-
-	while(*message)
-	{
-		leftOver | (*message >> leftOverBits)
-
-	}
 }
 
 void printString_(char* message)

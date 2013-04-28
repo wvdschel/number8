@@ -11,8 +11,6 @@
 // Motor control macros
 #define MOTOR_LEFT(dir)			currDirMotorLeft = dir; setSpeedMotor2(dir);
 #define MOTOR_RIGHT(dir)		currDirMotorRight = dir; setSpeedMotor1(-(dir));
-// Printing macros
-#define MOTOR_STATE(dir)		(dir > 0 ? '^' : (dir < 0 ? 'V' : '-'))
 
 // Possible states for the robot
 #define STATE_SEEK		 	1			// Looking for the enemy
@@ -467,102 +465,71 @@ int pushSensor(unsigned sensor_dir) {
 void printState()
 {
 	int i;
-	puts("-----------------------------------------------------");
+	puts("");
 	// Print out state
-	printString("Robot has been ");
 	switch(currState) {
 	case STATE_SEEK:
-		printString("SEEKING"); // (const rom far char *) ?
+		printString("SEE"); // (const rom far char *) ?
 		break;
 	case STATE_DESTROY:
-		printString("DESTROY");
+		printString("DES");
 		break;
 	case STATE_FLANK:
-		printString("FLANK");
+		printString("FLA");
 	case STATE_SURVIVE:
-		printString("SURVIVE");
+		printString("SUR");
 		break;
 	default:
-		printString("INVALID");
+		printString("INV");
 	}
-	printString(" for ");
+	printChar(',');
 	printInt(stateTimer);
-	puts("");
+	printChar(',');
 
 	// Print out motor state
-	printString("Current motor state: ");
-	printChar(MOTOR_STATE(currDirMotorLeft));
-	printChar(MOTOR_STATE(currDirMotorRight));
-	puts("");
+	printInt(currDirMotorLeft);
+	printInt(currDirMotorRight);
+	printChar(',');
 	
 	// Print ground sensor readings
-	printString("Current ground sensors seeing white: ");
 	if(groundSensor(DIR_FORWARD | DIR_RIGHT))
-		printString("(FRONT RIGHT) ");
+		printString("1,");
+	else
+		printString("0,");
 	if(groundSensor(DIR_BACK | DIR_RIGHT))
-		printString("(REAR RIGHT) ");
+		printString("1,");
+	else
+		printString("0,");
 	if(groundSensor(DIR_FORWARD | DIR_LEFT))
-		printString("(FRONT LEFT) ");
+		printString("1,");
+	else
+		printString("0,");
 	if(groundSensor(DIR_BACK | DIR_LEFT))
-		printString("(REAR LEFT)");
-	puts("");
+		printString("1,");
+	else
+		printString("0,");
 	
 	// Print push sensor readings
-	printString("Current push sensors being pressed: ");
-	if(pushSensor(DIR_FORWARD))
-		printString("FRONT ");
-	if(pushSensor(DIR_RIGHT))
-		printString("RIGHT ");
-	if(pushSensor(DIR_LEFT))
-		printString("LEFT ");
 	if(pushSensor(DIR_BACK))
-		printString("REAR");
-	puts("");
+		printString("1,");
+	else
+		printString("0,");
 	
 	// Print long distance sensors
-	printString("Distance sensors: ");
 	printInt(distanceSensor(DIR_LEFT));
-	printChar(' ');
+	printChar(',');
 	printInt(distanceSensor(DIR_RIGHT));
-	puts("");
 	printString("Raw sensor readings: ");
 	for(i=0; i < 7; i++) {
-		printString(" ");
+		printString(",");
 		printInt(sensor[i]);
 	}
-	puts("");
+	printChar(',');
 
 	// Print progress wheel data
-	printString("Progress measured in the past ");
-	printInt(SLEEP_TIME * PROGRESS_HISTORY_SIZE);
-	printString("ms: ");
 	printInt(progress);
-	printString(" (");
+	printChar(',');
 	printInt(progressRaw);
-	printString(", ");
-	printInt(progressHistoryIndex);
-	puts(")");
-
-	if(progressHistoryIndex == PROGRESS_HISTORY_SIZE)
-	{
-		puts("Progress history: ");
-		for(i = progressHistoryIndex - 1; i > progressHistoryIndex - PROGRESS_HISTORY_SIZE; i--)
-		{
-			int realI = i < 0 ? PROGRESS_HISTORY_SIZE + i : i;
-			printString("\t[");
-			printInt(realI);
-			printString("]");
-			printInt(progressHistory[realI]);
-			if( (progressHistoryIndex - i) % 5 )
-				printString(" ");
-			else
-			{
-				puts("");
-			}
-		}
-		puts("");
-	}
+	printChar(',');
 	puts("");
-
-	puts("-----------------------------------------------------");
 }

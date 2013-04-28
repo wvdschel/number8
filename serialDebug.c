@@ -5,7 +5,33 @@
 
 char buffer[2];
 
-void initDebug() {
+static void printBase64(unsigned char sixbit)
+{
+	sixbit &= 63
+	if(sixbit < 26)
+	{
+		printChar('A'+sixbit);
+	}
+	else if(sixbit < 52)
+	{
+		printChar('a'+(sixbit-26));
+	}
+	else if(sixbit < 62)
+	{
+		printChar('0'+(sixbit-52));
+	}
+	else if(sixbit == 62)
+	{
+		printChar('+');
+	}
+	else if(sixbit == 63)
+	{
+		printChar('/');
+	}
+}
+
+void initDebug()
+{
 	if(!DEBUG)
 		return;
 
@@ -32,15 +58,17 @@ void initDebug() {
 	//putsUSART("hello world\n");
 }
 
-void puts_(char* message) {
+void puts_(char* message)
+{
 	if(!DEBUG)
 		return;
 
-	printString_(message);
+	printString(message);
 	printString("\r\n");
 }
 
-void printChar(char c) {
+void printChar(char c)
+{
 	if(!DEBUG)
 		return;
 
@@ -60,7 +88,23 @@ void printChar(char c) {
 	putsUSART(buffer);
 }
 
-void printString_(char* message) {
+void printString64(char* message)
+{
+	if(!DEBUG)
+		return;
+
+	char leftOver 		= 0;
+	char leftOverBits 	= 0;
+
+	while(*message)
+	{
+		leftOver | (*message >> leftOverBits)
+
+	}
+}
+
+void printString_(char* message)
+{
 	if(!DEBUG)
 		return;
 
@@ -70,30 +114,35 @@ void printString_(char* message) {
 		printChar(*(const rom far char *)message++);*/
 }
 
-void printInt(int number) {
+void printInt(int number)
+{
 	int left, charsLeft = 0, factor, result;
 
 	if(!DEBUG)
 		return;
 
-	if(number == 0) {
+	if(number == 0)
+	{
 		printChar('0');
 		return;
 	}
 
-	if(number < 0) {
+	if(number < 0)
+	{
 		number = -number;
 		printChar('-');
 	}
 
 	left = number;
 
-	while(left > 0) {
+	while(left > 0)
+	{
 		charsLeft++;
 		left /= 10;
 	}
 
-	while(charsLeft > 0) {
+	while(charsLeft > 0)
+	{
 		charsLeft--;
 		factor = pow(10, charsLeft);
 		result = number/factor;

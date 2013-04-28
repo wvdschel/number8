@@ -35,52 +35,56 @@ public class Main {
 					String line = reader.readLine();
 					
 					while(line != null){
-						
-						boolean update = true;
-
-						if(line.startsWith("Raw sensor readings: ")){
-							
-							String[] rawSensors = line.split(":")[1].trim().split(" ");
-							sensors.distanceSensors[LEFT ] = rawSensors[1];
-							sensors.distanceSensors[RIGHT] = rawSensors[0];
-							
-							sensors.groundSensorValues[LEFT  | FRONT] = rawSensors[4];
-							sensors.groundSensorValues[RIGHT | FRONT] = rawSensors[2];
-							sensors.groundSensorValues[LEFT  | REAR ] = rawSensors[3];
-							sensors.groundSensorValues[RIGHT | REAR ] = rawSensors[5];
-						} 
-						else if(line.startsWith("Current push sensors being pressed: ")) {
-						
-							sensors.pushSensor = line.split(":")[1].trim();
-						}
-						else if(line.startsWith("Current ground sensors seeing white: ")){
-							
-							Arrays.fill(sensors.groundSensorStates, false);
-							
-							String[] groundSensors = line.split(": ")[1].trim().replace(") (", "),(").split(",");
-							
-							for(int i = 0; i < groundSensors.length; i++){
-								
-								String groundSensor = groundSensors[i];
-								groundSensor = groundSensor.substring(1, groundSensor.length() - 1);
-								String[] parts = groundSensor.split(" ");
-								
-								int lr = parts[1].equals("LEFT")  ? LEFT  : RIGHT;
-								int fr = parts[0].equals("FRONT") ? FRONT : REAR;
-								
-								sensors.groundSensorStates[lr | fr] = true;
+						int matchingChars = 0;
+						if(line.length() > 4)
+						{
+							for(; matchingChars < 3; matchingChars++)
+							{
+								if(line.charAt(matchingChars) < 'A' || line.charAt(matchingChars) < 'Z')
+									break;
 							}
-						}
-						else{
-						
-							update = false;
+							if(matchingChars == 3 && line.charAt(4) == ',')
+								matchingChars++;
 						}
 
-						if(update){
+						if(matchingChars == 4){
+							
+							String[] data = line.split(",");
+							// 0:  [A-Z]{3}
+							// 1:  stateTime
+							// 2:  LSpeed
+							// 3:  RSpeed
 
+							// 4:  FRGround
+							// 5:  RRGround
+							// 6:  FLGround
+							// 7:  RLGround
+							sensors.groundSensorStates[RIGHT | FRONT] = data[4];
+							sensors.groundSensorStates[LEFT  | REAR ] = data[5];
+							sensors.groundSensorStates[LEFT  | FRONT] = data[6];
+							sensors.groundSensorStates[RIGHT | REAR ] = data[7];
+							// 8:  RPressure
+							sensors.pushSensor = data[8]
+							// 9:  LDistance
+							// 10: LDistance
+							
+							// 11: RDistanceRaw
+							// 12: LDistanceRaw
+							sensors.distanceSensors[LEFT ] = data[12];
+							sensors.distanceSensors[RIGHT] = data[11];
+							// 13: FRGroundRaw
+							// 14: RLGroundRaw
+							// 15: FLGroundRaw
+							// 16: RRGroundRaw
+							sensors.groundSensorValues[RIGHT | FRONT] = data[13];
+							sensors.groundSensorValues[LEFT  | REAR ] = data[14];
+							sensors.groundSensorValues[LEFT  | FRONT] = data[15];
+							sensors.groundSensorValues[RIGHT | REAR ] = data[16];
+							// 17: ProgressSum
+							// 18: ProgressLast
 							window.repaint();
 						}
-						
+
 						line = reader.readLine();
 					}
 				}

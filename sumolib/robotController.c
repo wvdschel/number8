@@ -166,7 +166,6 @@ void main(void) {
 		delay_ms(920);
 	} // end of starting procedure
 	clearLCD();
-	appendStringToLCD("EXTERMINATE!");
 
 #ifdef SERVO
 	// routines for servo control DO NOT EDIT

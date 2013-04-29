@@ -17,12 +17,6 @@
 // Check if we see a white line, and switch to survival state if we do.
 int survivalCheck()
 {
-	if(pushSensor(DIR_BACK))
-	{
-		SWITCH_STATE(STATE_ATTACK);
-		setMotors(0, 0);
-		return TRUE;
-	}
 	if(groundSensor(DIR_FORWARD | DIR_LEFT) || groundSensor(DIR_FORWARD | DIR_RIGHT)
 		|| groundSensor(DIR_BACK | DIR_LEFT) || groundSensor(DIR_BACK | DIR_RIGHT))
 	{
@@ -183,4 +177,6 @@ void doFlankScanState()
 {}
 
 void doAttackRearState()
-{}
+{
+	setMotors(DIR_BACK, MAX_SPEED);
+}

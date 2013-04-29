@@ -39,6 +39,9 @@ public class RobotPanel extends JPanel {
 		g.drawString(sensors.distanceSensors[LEFT], x + w / 4, y + h / 5);
 		g.drawString(sensors.distanceSensors[RIGHT], 
 				x + 3 * w / 4 - fontMetrics.stringWidth(sensors.distanceSensors[RIGHT]), y + h / 5);
+		
+		drawSpeedometer(g, x, y + 2 * h / 5, sensors.motorSpeed[LEFT]);
+		drawSpeedometer(g, x + w - size, y + 2 * h / 5, sensors.motorSpeed[RIGHT]);
 
 		// ground sensors
 		drawGroundSensor(g, sensors.groundSensorValues[LEFT  | FRONT], x, y, 
@@ -56,8 +59,6 @@ public class RobotPanel extends JPanel {
 		
 		g.setColor(Color.BLACK);
 		g.drawRect(x, y + h - dh, w, dh);
-		
-		drawSpeedometer(g, x, y);
 
 		g.drawRect(x, y, w, h - dh);
 		g.translate(-dx, -dy);
@@ -80,10 +81,20 @@ public class RobotPanel extends JPanel {
 		g.drawString(sensorValue, x + dx, y + dy);
 	}
 	
-	private void drawSpeedometer(Graphics g, int x, int y){
+	private void drawSpeedometer(Graphics g, int x, int y, int speed){
 		
-		//g.setColor(Color.YELLOW);
-		//g.drawOval(x, y, size, size);
-		//g.drawArc(x, y, size, size, startAngle, arcAngle)
+		int minAngle = 30;
+		int maxAngle = 120;
+		
+		int maxSpeed = 1024;
+		int speedAngle = Math.abs(speed) * maxAngle / maxSpeed;
+
+		int startAngle = minAngle + maxAngle - speedAngle;
+		
+		g.setColor(speed < 0 ? Color.RED : Color.GREEN);
+		g.fillArc(x, y, size, size, startAngle, speedAngle);
+		
+		g.setColor(Color.BLACK);
+		g.drawArc(x, y, size, size, minAngle, maxAngle);
 	}
 }

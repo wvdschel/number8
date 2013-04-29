@@ -41,9 +41,9 @@ public class Main {
 						
 							// 0:  [A-Z]{3}
 							// 1:  stateTimer
-							// 2:  LSpeed
-							// 3:  RSpeed
-							
+							sensors.motorSpeed[LEFT ] = Integer.parseInt(data[2]); // 2:  LSpeed
+							sensors.motorSpeed[RIGHT] = Integer.parseInt(data[3]); // 3:  RSpeed
+
 							/* Ground sensors */
 							sensors.groundSensorStates[RIGHT | FRONT] = data[4].equals("1"); // 4:  FRGround
 							sensors.groundSensorStates[LEFT  | REAR ] = data[5].equals("1"); // 5:  RRGround
@@ -70,7 +70,7 @@ public class Main {
 							// 18: ProgressLast
 							// 19: stateProgress
 							
-							//try{ Thread.sleep(100); } catch(InterruptedException e){}
+							try{ Thread.sleep(100); } catch(InterruptedException e){}
 							window.repaint();
 						}
 

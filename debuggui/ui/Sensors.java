@@ -14,4 +14,6 @@ public class Sensors {
 	String[] distanceSensors = new String[2];
 
 	String pushSensor;
+	
+	int[] motorSpeed = new int[2];
 }

@@ -10,7 +10,15 @@
 
 #define PROGRESS_HISTORY_SIZE	((int)15)
 // State switching macro
-#define SWITCH_STATE(nState)	{ printInt(__LINE__); printString(": Switching to new state "); printInt(nState); puts(""); currState = nState; stateTimer = 0; }
+#define SWITCH_STATE(nState)	{					\
+		printInt(__LINE__);							\
+		printString(": Switching to new state ");	\
+		printInt(nState);							\
+		puts("");									\
+		currState = nState;							\
+		stateTimer = 0;								\
+		stateProgress = 0;							\
+	}
 
 // Global vars
 #ifndef AI_LIB
@@ -19,8 +27,8 @@ extern int currState;				// Current state of the robot
 extern int stateTimer;				// How long have we been in the current state?
 extern int stateProgress;			// How much distance have we covered in this state?
 extern int currDirection;			// Current direction of the engines
-extern int currDirMotorLeft;		// Direction of each motor
-extern int currDirMotorRight;
+extern int currSpeedMotorLeft;		// Direction of each motor
+extern int currSpeedMotorRight;
 extern int* initialGroundReading;	// Initial readings from the ground sensors - this is our reference for "black"
 extern int initialEyeLeft;			// Initial readings for long distance sensors, to account for noise etc.
 extern int initialEyeRight;

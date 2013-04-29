@@ -296,7 +296,7 @@ void flankTheBox()
 	while(stallCount < 3)
 	{
 		readSensors();
-		if(count > PROGRESS_HISTORY_SIZE && progress < MIN_PROGRESS)
+		if(count > PROGRESS_HISTORY_SIZE && progress < 5)
 		{
 			printString("Progress: ");
 			printInt(progress);

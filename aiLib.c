@@ -9,8 +9,8 @@
 #include "quadenclib/quadenc.h"
 
 // Motor control macros
-#define MOTOR_LEFT(dir)			if(currDirMotorLeft != dir)  { currDirMotorLeft = dir; setSpeedMotor2(dir); }
-#define MOTOR_RIGHT(dir)		if(currDirMotorRight != dir) { currDirMotorRight = dir; setSpeedMotor1(-(dir)); }
+#define MOTOR_LEFT(dir)			if(currSpeedMotorLeft != dir)  { currSpeedMotorLeft = dir; setSpeedMotor2(dir); }
+#define MOTOR_RIGHT(dir)		if(currSpeedMotorRight != dir) { currSpeedMotorRight = dir; setSpeedMotor1(-(dir)); }
 
 #define SAMPLE_COUNT		10			// The number of samples for each sensor measurement
 
@@ -39,8 +39,8 @@ int currState = STATE_SCAN;		// Current state of the robot
 int stateTimer = -1;			// How long have we been in the current state?
 int stateProgress = 0;			// How much distance have we covered in this state?
 int currDirection = 0;			// Current direction of the engines
-int currDirMotorLeft = 0;		// Direction of each motor
-int currDirMotorRight = 0;
+int currSpeedMotorLeft = 0;		// Speed of each motor
+int currSpeedMotorRight = 0;
 int initialGroundReading[4];	// Initial readings from the ground sensors - this is our reference for "black"
 int initialEyeLeft = 0;			// Initial readings for long distance sensors, to account for noise etc.
 int initialEyeRight = 0;
@@ -104,10 +104,14 @@ void ailib_isr()
 void doMove()
 {
 	//flankTheBox();
+	//oneEyedBrake();
 
 	if(stateTimer >= 1000000)
 		stateTimer = 0;
 	stateTimer += 1;
+
+	if(DEBUG && stateTimer % 3 == 0)
+		printState();
 
 	readSensors();
 	stateProgress += progress;
@@ -125,10 +129,8 @@ void doMove()
 		doFlankAwayState(); break;
 	case STATE_FLANK_TURN:
 		doFlankTurnState(); break;
-	case STATE_FLANK_FORWARD:
-		doFlankForwardState(); break;
-	case STATE_FLANK_SCAN:
-		doFlankScanState(); break;
+	case STATE_ATTACK_REAR:
+		doAttackRearState(); break;
 	default:
 		printString("Illegal state: ");
 		printInt(currState);
@@ -137,9 +139,6 @@ void doMove()
 		delay_ms(SLEEP_TIME * 10);
 	}
 
-	LEDS = (LEDS & 0x1F) | (currState << 5);
-	if(DEBUG && stateTimer % 3 == 0)
-		printState();
 	delay_ms(SLEEP_TIME);
 }
 
@@ -244,11 +243,11 @@ void setMotors(int direction, int speed)
 	} else if(direction & DIR_BACK) {
 		if(direction & DIR_RIGHT)
 		{
-			MOTOR_LEFT(0);
-			MOTOR_RIGHT(-speed);
-		} else if(direction & DIR_LEFT) {
 			MOTOR_RIGHT(0);
 			MOTOR_LEFT(-speed);
+		} else if(direction & DIR_LEFT) {
+			MOTOR_LEFT(0);
+			MOTOR_RIGHT(-speed);
 		} else {
 			MOTOR_LEFT(-speed);
 			MOTOR_RIGHT(-speed);
@@ -347,12 +346,6 @@ void printState()
 	case STATE_FLANK_TURN:
 		printString("FLT");
 		break;
-	case STATE_FLANK_FORWARD:
-		printString("FLF");
-		break;
-	case STATE_FLANK_SCAN:
-		printString("FLS");
-		break;
 	case STATE_ATTACK_REAR:
 		printString("BSX");
 		break;
@@ -364,9 +357,9 @@ void printState()
 	printChar(',');
 
 	// Print out motor state
-	printInt(currDirMotorLeft);
+	printInt(currSpeedMotorLeft);
 	printChar(',');
-	printInt(currDirMotorRight);
+	printInt(currSpeedMotorRight);
 	printChar(',');
 	
 	// Print ground sensor readings

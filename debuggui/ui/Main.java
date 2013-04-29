@@ -59,12 +59,12 @@ public class Main {
 							// 5:  RRGround
 							// 6:  FLGround
 							// 7:  RLGround
-							sensors.groundSensorStates[RIGHT | FRONT] = data[4];
-							sensors.groundSensorStates[LEFT  | REAR ] = data[5];
-							sensors.groundSensorStates[LEFT  | FRONT] = data[6];
-							sensors.groundSensorStates[RIGHT | REAR ] = data[7];
+							sensors.groundSensorStates[RIGHT | FRONT] = data[4] == "1";
+							sensors.groundSensorStates[LEFT  | REAR ] = data[5] == "1";
+							sensors.groundSensorStates[LEFT  | FRONT] = data[6] == "1";
+							sensors.groundSensorStates[RIGHT | REAR ] = data[7] == "1";
 							// 8:  RPressure
-							sensors.pushSensor = data[8]
+							sensors.pushSensor = data[8];
 							// 9:  LDistance
 							// 10: LDistance
 							

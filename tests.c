@@ -330,3 +330,26 @@ void flankTheBox()
 		delay_ms(300);
 	}
 }
+
+void drive100Clicks()
+{
+	int totalProgress = 0;
+	MOTOR_LEFT(700);
+	MOTOR_RIGHT(700);
+	while(totalProgress < 100)
+	{
+		readSensors();
+		totalProgress += progressRaw;
+		printState();
+		delay_ms(SLEEP_TIME);
+	}
+	MOTOR_LEFT(0);
+	MOTOR_RIGHT(0);
+	puts("Aaaand we're done.");
+	while(1)
+	{
+		readSensors();
+		printState();
+		delay_ms(300);
+	}
+}

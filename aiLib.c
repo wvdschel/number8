@@ -27,8 +27,8 @@
 #define SURVIVE_TIME		40			// How long the robot stays in survival mode after the "threat" has gone away.
 
 #define PROGRESS_WHEEL 		1
-#define PROGRESS_WHEEL_TIMER 58036		// Internal clock frequency is 48Mhz because of the PLL settings. Using fosc/4 and
-										// a prescaler of 1/8 for timer 1 in 16 bit mode, this value gives us ?? ms between
+#define PROGRESS_WHEEL_TIMER 61036		// Internal clock frequency is 48Mhz because of the PLL settings. Using fosc/4 and
+										// a prescaler of 1/8 for timer 1 in 16 bit mode, this value gives us 3 ms between
 										// interrupts, not including interrupt processing.
 
 #define SLEEP_TIME			((int)20)
@@ -105,6 +105,7 @@ void doMove()
 {
 	//flankTheBox();
 	//oneEyedBrake();
+	//drive100Clicks();
 
 	if(stateTimer >= 1000000)
 		stateTimer = 0;
@@ -114,7 +115,7 @@ void doMove()
 		printState();
 
 	readSensors();
-	stateProgress += progress;
+	stateProgress += progressRaw;
 	
 	switch(currState) {
 	case STATE_MOVE:
@@ -142,7 +143,13 @@ void doMove()
 	delay_ms(SLEEP_TIME);
 }
 
-void initState(int direction) {
+void initState(int direction)
+{
+	currState = STATE_SCAN;
+	stateTimer = 0;
+	stateProgress = 0;
+	return;
+
 	if(direction == DIR_FORWARD) {
 		SWITCH_STATE(STATE_MOVE);
 	} else {
@@ -232,13 +239,13 @@ void setMotors(int direction, int speed)
 		if(direction & DIR_RIGHT)
 		{
 			MOTOR_RIGHT(0);
-			MOTOR_LEFT(1023);
+			MOTOR_LEFT(speed);
 		} else if(direction & DIR_LEFT) {
 			MOTOR_LEFT(0);
-			MOTOR_RIGHT(1023);
+			MOTOR_RIGHT(speed);
 		} else {
-			MOTOR_LEFT(1023);
-			MOTOR_RIGHT(1023);
+			MOTOR_LEFT(speed);
+			MOTOR_RIGHT(speed);
 		}
 	} else if(direction & DIR_BACK) {
 		if(direction & DIR_RIGHT)

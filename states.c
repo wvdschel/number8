@@ -3,20 +3,22 @@
 #include "serialDebug.h"
 
 
-#define DIFF_THRESHOLD 		(int)100	// Maximum difference between two long range sensors, if the diff is higher, the robot will reallign.
-#define DISTANCE_CLOSE		(int)800	// Anything lower than this value is considered close enough to attack, anything higher is considered too far away
+#define DIFF_THRESHOLD 		(int)70 	// Maximum difference between two long range sensors, if the diff is higher, the robot will reallign.
+#define DISTANCE_CLOSE		(int)985	// Anything lower than this value is considered close enough to attack, anything higher is considered too far away
+#define DISTANCE_VERY_CLOSE	(int)600	// This is close enough to ignore the white lines
 
 #define SEEK_ROTATE_TIME 	(int)150 	// How many iterations should we wait before moving the robot to change the search space.
 							 			// To disable this and just turn left all the time, set to 0.
-#define SEEK_MOVE_DISTANCE	(int)100	// How long the robot should move forward before looking around again.
+#define SEEK_MOVE_DISTANCE	(int)50		// How long the robot should move forward before looking around again.
 #define MIN_PROGRESS		(int)5		// Minimal progress to continue pushing during an attack
-#define SURVIVE_CLEARANCE	(int)100	// Minimal progress before leaving survival
+#define SURVIVE_CLEARANCE	(int)30		// Minimal progress before leaving survival
 
 #define FLANK_ROTATE_TIME	(int)100
-#define FLANK_BACK_DISTANCE	(int)-100
+#define FLANK_BACK_DISTANCE	(int)-20
 
 #define MAX_SPEED			(int)1023
-#define SAFE_SPEED			(int)850
+#define SAFE_SPEED			(int)950
+#define SCAN_SPEED			(int)800
 
 // Check if we see a white line, and switch to survival state if we do.
 int survivalCheck()
@@ -36,13 +38,15 @@ int enemyCheck(int distanceLeft, int distanceRight)
 	// If something is close, assume there's an enemy in front
 	if(distanceLeft < DISTANCE_CLOSE || distanceRight < DISTANCE_CLOSE)
 	{
-		SWITCH_STATE(STATE_ATTACK);
+		if(currState != STATE_ATTACK)
+			SWITCH_STATE(STATE_ATTACK);
 		return TRUE;
 	}
 	// If our rear is pressed, there's probably an enemy in the back
 	if(pushSensor(DIR_BACK))
 	{
-		SWITCH_STATE(STATE_ATTACK_REAR);
+		if(currState != STATE_ATTACK_REAR)
+			SWITCH_STATE(STATE_ATTACK_REAR);
 		setMotors(0, 0);
 		return TRUE;
 	}
@@ -58,7 +62,7 @@ void doMoveState()
 	distanceRight = distanceSensor(DIR_RIGHT);
 	distanceAvg = (distanceLeft + distanceRight) / 2;
 
-	if(survivalCheck() || enemyCheck(distanceLeft, distanceRight))
+	if(enemyCheck(distanceLeft, distanceRight) || survivalCheck())
 	{
 		return;
 	}
@@ -70,15 +74,21 @@ void doMoveState()
 		setMotors(DIR_FORWARD, MAX_SPEED);
 	}
 	// If we (probably) see a ledge, increment the counter, if not, reset the counter
-	if(distanceLeft - initialEyeLeft >= 20)
+	if(distanceLeft >= 1044)
 	{
 		edgeDetectedCount++;
 	} else {
 		edgeDetectedCount = 0;
 	}
-	// If we've covered enough distance or if we have seen an edge coming up,
-	// then go back to scanning
-	if(stateProgress >= SEEK_MOVE_DISTANCE || edgeDetectedCount >= 3)
+	// If we (think we) see the edge, slow down.
+	if(edgeDetectedCount >= 3)
+	{
+		setMotors(DIR_FORWARD, SAFE_SPEED);
+	} else {
+		setMotors(DIR_FORWARD, MAX_SPEED);
+	}
+	// If we've covered enough distance, then go back to scanning
+	if(stateProgress >= SEEK_MOVE_DISTANCE)
 	{
 		SWITCH_STATE(STATE_SCAN);
 		return;
@@ -93,12 +103,12 @@ void doScanState()
 	distanceRight = distanceSensor(DIR_RIGHT);
 	distanceAvg = (distanceLeft + distanceRight) / 2;
 
-	if(survivalCheck() || enemyCheck(distanceLeft, distanceRight))
+	if(enemyCheck(distanceLeft, distanceRight) || survivalCheck())
 	{
 		return;
 	}
 
-	setMotors(DIR_LEFT, MAX_SPEED);
+	setMotors(DIR_LEFT, SCAN_SPEED);
 
 	if(stateTimer >= SEEK_ROTATE_TIME)
 	{
@@ -115,7 +125,7 @@ void doAttackState()
 	distanceRight = distanceSensor(DIR_RIGHT);
 	distanceAvg = (distanceLeft + distanceRight) / 2;
 
-	if(survivalCheck() || enemyCheck(distanceLeft, distanceRight))
+	if(distanceAvg > DISTANCE_VERY_CLOSE && survivalCheck())
 	{
 		return;
 	}
@@ -226,5 +236,8 @@ void doFlankTurnState()
 void doAttackRearState()
 {
 	//setMotors(DIR_BACK, MAX_SPEED);
-	setMotors(DIR_BACK, 0);
+	setMotors(DIR_BACK, MAX_SPEED);
+
+	if(!pushSensor(DIR_BACK))
+		SWITCH_STATE(STATE_SCAN);
 }

@@ -9,7 +9,7 @@
 #include "quadenclib/quadenc.h"
 
 // Motor control macros
-#define MOTOR_LEFT(dir)			if(currDirMotorLeft != dir) { currDirMotorLeft = dir; setSpeedMotor2(dir); }
+#define MOTOR_LEFT(dir)			if(currDirMotorLeft != dir)  { currDirMotorLeft = dir; setSpeedMotor2(dir); }
 #define MOTOR_RIGHT(dir)		if(currDirMotorRight != dir) { currDirMotorRight = dir; setSpeedMotor1(-(dir)); }
 
 #define SAMPLE_COUNT		10			// The number of samples for each sensor measurement
@@ -138,7 +138,7 @@ void doMove()
 	}
 
 	LEDS = (LEDS & 0x1F) | (currState << 5);
-	if(DEBUG && stateTimer % 25 == 0)
+	if(DEBUG && stateTimer % 3 == 0)
 		printState();
 	delay_ms(SLEEP_TIME);
 }
@@ -155,7 +155,6 @@ void wipeProgressHistory()
 {
 	int i;
 	puts("Wiping progress history.");
-	//memset(progressHistory, 0, sizeof(progressHistory)); // This shit doesn't work.
 	for(i = 0; i < PROGRESS_HISTORY_SIZE; i++)
 		progressHistory[i] = 0;
 	progress = 0;
@@ -229,24 +228,30 @@ void setMotors(int direction, int speed)
 		speed = 1023;
 	if(speed < 0)
 		speed = 0;
-	MOTOR_LEFT(1023);
-	MOTOR_RIGHT(1023);
 	if(direction & DIR_FORWARD) 
 	{
 		if(direction & DIR_RIGHT)
 		{
 			MOTOR_RIGHT(0);
+			MOTOR_LEFT(1023);
 		} else if(direction & DIR_LEFT) {
 			MOTOR_LEFT(0);
-		}	
+			MOTOR_RIGHT(1023);
+		} else {
+			MOTOR_LEFT(1023);
+			MOTOR_RIGHT(1023);
+		}
 	} else if(direction & DIR_BACK) {
-		MOTOR_LEFT(-speed);
-		MOTOR_RIGHT(-speed);
 		if(direction & DIR_RIGHT)
 		{
 			MOTOR_LEFT(0);
+			MOTOR_RIGHT(-speed);
 		} else if(direction & DIR_LEFT) {
 			MOTOR_RIGHT(0);
+			MOTOR_LEFT(-speed);
+		} else {
+			MOTOR_LEFT(-speed);
+			MOTOR_RIGHT(-speed);
 		}
 	} else {
 		// No real movement, may be turning in place
@@ -348,6 +353,9 @@ void printState()
 	case STATE_FLANK_SCAN:
 		printString("FLS");
 		break;
+	case STATE_ATTACK_REAR:
+		printString("BSX");
+		break;
 	default:
 		printString("INV");
 	}
@@ -357,6 +365,7 @@ void printState()
 
 	// Print out motor state
 	printInt(currDirMotorLeft);
+	printChar(',');
 	printInt(currDirMotorRight);
 	printChar(',');
 	
@@ -388,7 +397,6 @@ void printState()
 	printInt(distanceSensor(DIR_LEFT));
 	printChar(',');
 	printInt(distanceSensor(DIR_RIGHT));
-	printString("Raw sensor readings: ");
 	for(i=0; i < 7; i++) {
 		printString(",");
 		printInt(sensor[i]);

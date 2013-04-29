@@ -7,7 +7,6 @@ import static ui.Sensors.RIGHT;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 
 import javax.swing.JFrame;
 
@@ -35,54 +34,43 @@ public class Main {
 					String line = reader.readLine();
 					
 					while(line != null){
-						int matchingChars = 0;
-						if(line.length() > 4)
-						{
-							for(; matchingChars < 3; matchingChars++)
-							{
-								if(line.charAt(matchingChars) < 'A' || line.charAt(matchingChars) < 'Z')
-									break;
-							}
-							if(matchingChars == 3 && line.charAt(4) == ',')
-								matchingChars++;
-						}
-
-						if(matchingChars == 4){
-							
-							String[] data = line.split(",");
+												
+						String[] data = line.split(",");
+						
+						if(data.length == 21){
+						
 							// 0:  [A-Z]{3}
 							// 1:  stateTimer
 							// 2:  LSpeed
 							// 3:  RSpeed
+							
+							/* Ground sensors */
+							sensors.groundSensorStates[RIGHT | FRONT] = data[4].equals("1"); // 4:  FRGround
+							sensors.groundSensorStates[LEFT  | REAR ] = data[5].equals("1"); // 5:  RRGround
+							sensors.groundSensorStates[LEFT  | FRONT] = data[6].equals("1"); // 6:  FLGround
+							sensors.groundSensorStates[RIGHT | REAR ] = data[7].equals("1"); // 7:  RLGround
+							
+							/* Push sensors */
+							sensors.pushSensor = data[8]; // 8:  RPressure
 
-							// 4:  FRGround
-							// 5:  RRGround
-							// 6:  FLGround
-							// 7:  RLGround
-							sensors.groundSensorStates[RIGHT | FRONT] = data[4] == "1";
-							sensors.groundSensorStates[LEFT  | REAR ] = data[5] == "1";
-							sensors.groundSensorStates[LEFT  | FRONT] = data[6] == "1";
-							sensors.groundSensorStates[RIGHT | REAR ] = data[7] == "1";
-							// 8:  RPressure
-							sensors.pushSensor = data[8];
+							/* Long distance sensors */
 							// 9:  LDistance
 							// 10: LDistance
-							
-							// 11: RDistanceRaw
-							// 12: LDistanceRaw
-							sensors.distanceSensors[LEFT ] = data[12];
-							sensors.distanceSensors[RIGHT] = data[11];
-							// 13: FRGroundRaw
-							// 14: RLGroundRaw
-							// 15: FLGroundRaw
-							// 16: RRGroundRaw
-							sensors.groundSensorValues[RIGHT | FRONT] = data[13];
-							sensors.groundSensorValues[LEFT  | REAR ] = data[14];
-							sensors.groundSensorValues[LEFT  | FRONT] = data[15];
-							sensors.groundSensorValues[RIGHT | REAR ] = data[16];
+							sensors.distanceSensors[LEFT ] = data[12]; // 11: RDistanceRaw
+							sensors.distanceSensors[RIGHT] = data[11]; // 12: LDistanceRaw
+
+							/* Ground sensors */
+							sensors.groundSensorValues[RIGHT | FRONT] = data[13]; // 13: FRGroundRaw
+							sensors.groundSensorValues[LEFT  | REAR ] = data[14]; // 14: RLGroundRaw
+							sensors.groundSensorValues[LEFT  | FRONT] = data[15]; // 15: FLGroundRaw
+							sensors.groundSensorValues[RIGHT | REAR ] = data[16]; // 16: RRGroundRaw
+
+							/* Miscellaneous */
 							// 17: ProgressSum
 							// 18: ProgressLast
 							// 19: stateProgress
+							
+							//try{ Thread.sleep(100); } catch(InterruptedException e){}
 							window.repaint();
 						}
 

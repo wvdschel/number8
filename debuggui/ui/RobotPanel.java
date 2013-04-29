@@ -56,6 +56,8 @@ public class RobotPanel extends JPanel {
 		
 		g.setColor(Color.BLACK);
 		g.drawRect(x, y + h - dh, w, dh);
+		
+		drawSpeedometer(g, x, y);
 
 		g.drawRect(x, y, w, h - dh);
 		g.translate(-dx, -dy);
@@ -76,5 +78,12 @@ public class RobotPanel extends JPanel {
 		
 		g.setColor(state ? Color.BLACK : Color.WHITE);
 		g.drawString(sensorValue, x + dx, y + dy);
+	}
+	
+	private void drawSpeedometer(Graphics g, int x, int y){
+		
+		//g.setColor(Color.YELLOW);
+		//g.drawOval(x, y, size, size);
+		//g.drawArc(x, y, size, size, startAngle, arcAngle)
 	}
 }

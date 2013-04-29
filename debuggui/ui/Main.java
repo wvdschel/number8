@@ -51,7 +51,7 @@ public class Main {
 							
 							String[] data = line.split(",");
 							// 0:  [A-Z]{3}
-							// 1:  stateTime
+							// 1:  stateTimer
 							// 2:  LSpeed
 							// 3:  RSpeed
 
@@ -82,6 +82,7 @@ public class Main {
 							sensors.groundSensorValues[RIGHT | REAR ] = data[16];
 							// 17: ProgressSum
 							// 18: ProgressLast
+							// 19: stateProgress
 							window.repaint();
 						}
 

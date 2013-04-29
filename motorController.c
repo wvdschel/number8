@@ -1,5 +1,4 @@
 #include "sumolib/dwengoBoard.h"
-#include "util.h"
 #include <usart.h>
 #include "serialDebug.h"
 
@@ -29,7 +28,7 @@ void initMotors()
 
 void setSpeedMotor(short speed, char forward, char reverse)
 {
-	unsigned char speedData = (unsigned char)(abs(speed) >> 3); // clear sign bit and divide by 8
+	unsigned char speedData = (unsigned char)(ABS(speed) >> 3); // clear sign bit and divide by 8
 
 	if(DEBUG)
 	{

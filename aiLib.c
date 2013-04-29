@@ -1,31 +1,18 @@
 #define QUADENC_PULLDOWN
 
-#include "util.h"
+#define AI_LIB
+
 #include "aiLib.h"
+#include "states.h"
 #include "sumolib/dwengoMotor.h"
 #include "serialDebug.h"
 #include "quadenclib/quadenc.h"
 
-// State switching macro
-#define SWITCH_STATE(nState)	{ printInt(__LINE__); printString(": Switching to new state "); printInt(nState); puts(""); currState = nState; stateTimer = 0; }
 // Motor control macros
-#define MOTOR_LEFT(dir)			currDirMotorLeft = dir; setSpeedMotor2(dir);
-#define MOTOR_RIGHT(dir)		currDirMotorRight = dir; setSpeedMotor1(-(dir));
+#define MOTOR_LEFT(dir)			if(currDirMotorLeft != dir) { currDirMotorLeft = dir; setSpeedMotor2(dir); }
+#define MOTOR_RIGHT(dir)		if(currDirMotorRight != dir) { currDirMotorRight = dir; setSpeedMotor1(-(dir)); }
 
-// Possible states for the robot
-#define STATE_SEEK		 	1			// Looking for the enemy
-#define STATE_DESTROY 		2			// Enemy in front of robot, try to push it
-#define STATE_FLANK			3			// Pushing didn't work, try to get around the enemy.
-#define STATE_SURVIVE	 	4			// White edge detected, move away
-
-
-// Sensor calibration related stuff
-#define DIFF_THRESHOLD 		5			// Maximum difference between two long range sensors, if the diff is higher, the robot will reallign.
-#define DISTANCE_CLOSE		45			// Anything lower than this value is considered close, anything higher is considered infinitely far away
-#define SEEK_ROTATE_TIME 	(int)150 	// How many iterations should we wait before moving the robot to change the search space.
-							 			// To disable this and just turn left all the time, set to 0.
-#define SEEK_MOVE_TIME		(int)100	// How long the robot should move forward before looking around again.
-#define SAMPLE_COUNT		10			// The number of samples for each measurement
+#define SAMPLE_COUNT		10			// The number of samples for each sensor measurement
 
 //#define BLACK_EDGE_WHITE_BOARD
 #ifdef BLACK_EDGE_WHITE_BOARD
@@ -39,31 +26,31 @@
 
 #define SURVIVE_TIME		40			// How long the robot stays in survival mode after the "threat" has gone away.
 
-#define PROGRESS_WHEEL
+#define PROGRESS_WHEEL 		1
 #define PROGRESS_WHEEL_TIMER 58036		// Internal clock frequency is 48Mhz because of the PLL settings. Using fosc/4 and
 										// a prescaler of 1/8 for timer 1 in 16 bit mode, this value gives us ?? ms between
 										// interrupts, not including interrupt processing.
-#define MIN_PROGRESS		5			// Minimal progress to continue pushing.
 
 #define SLEEP_TIME			((int)20)
 
 // Global vars
-static int sensor[7]; 					// Sensor readings
-static int currState = STATE_SEEK;		// Current state of the robot
-static int stateTimer = -1;				// How long have we been in the current state?
-static int currDirection = 0;			// Current direction of the engines
-static int currDirMotorLeft = 0;		// Direction of each motor
-static int currDirMotorRight = 0;
-static int initialGroundReading[4];		// Initial readings from the ground sensors - this is our reference for "black"
-static int initialEyeLeft = 0;			// Initial readings for long distance sensors, to account for noise etc.
-static int initialEyeRight = 0;
-static int initialEyeAvg = 0;
-static int progress = 0;				// Progress over the past 100 turns combined.
+int sensor[7]; 					// Sensor readings
+int currState = STATE_SCAN;		// Current state of the robot
+int stateTimer = -1;			// How long have we been in the current state?
+int stateProgress = 0;			// How much distance have we covered in this state?
+int currDirection = 0;			// Current direction of the engines
+int currDirMotorLeft = 0;		// Direction of each motor
+int currDirMotorRight = 0;
+int initialGroundReading[4];	// Initial readings from the ground sensors - this is our reference for "black"
+int initialEyeLeft = 0;			// Initial readings for long distance sensors, to account for noise etc.
+int initialEyeRight = 0;
+int initialEyeAvg = 0;
+int progress = 0;				// Progress over the past 100 turns combined.
 #define PROGRESS_HISTORY_SIZE	((int)15)
-static int progressHistory[PROGRESS_HISTORY_SIZE] = {0};
-										// Circular buffer of 100 turns raw input from the progress wheel.
-static int progressHistoryIndex = 0;	// Current end of the circular buffer.
-static int progressRaw = 0;				// Progress as reported by the progress wheel. This value is reset each turn.
+int progressHistory[PROGRESS_HISTORY_SIZE] = {0};
+								// Circular buffer of 100 turns raw input from the progress wheel.
+int progressHistoryIndex = 0;	// Current end of the circular buffer.
+int progressRaw = 0;			// Progress as reported by the progress wheel. This value is reset each turn.
 
 void ailib_init()
 {
@@ -112,105 +99,41 @@ void ailib_isr()
 #endif
 }
 
-#include "tests.c"
+//#include "tests.c"
 
 void doMove()
 {
-	int distanceLeft, distanceRight, distanceAvg;
-
-	flankTheBox();
+	//flankTheBox();
 
 	if(stateTimer >= 1000000)
 		stateTimer = 0;
 	stateTimer += 1;
 
 	readSensors();
-	distanceLeft = distanceSensor(DIR_LEFT);
-	distanceRight = distanceSensor(DIR_RIGHT);
-	distanceAvg = (distanceLeft + distanceRight) / 2;
+	stateProgress += progress;
 	
 	switch(currState) {
-	case STATE_SEEK: // Turn right for a while, then turn left until you find an enemy.
-		if(survivalCheck())
-			break;
-		// If we just switched, start turning.
-		if(stateTimer == 1)
-		{
-			if(currDirection & DIR_RIGHT)
-				setMotors(DIR_RIGHT);
-			else
-				setMotors(DIR_LEFT);
-		}
-		if(abs(distanceLeft - distanceRight) > DIFF_THRESHOLD)
-		{
-			// Sensors are far apart each other, one sensor might have found something, turn toward that sensor
-			if(distanceLeft < distanceRight)
-				setMotors(DIR_LEFT);
-			else
-				setMotors(DIR_RIGHT);
-			break; // No additional checks are needed, on to the next iteration.
-		} else if(distanceAvg < DISTANCE_CLOSE) {
-			// Sensors are close to each other, and indicate an object is close by: target found.
-			SWITCH_STATE(STATE_DESTROY);
-			setMotors(DIR_FORWARD);
-			break;
-		}
-		{
-			int currentStage = stateTimer % (SEEK_MOVE_TIME+SEEK_ROTATE_TIME);
-			// Nothing found, check if we need to move or rotate
-			if(currDirection == DIR_FORWARD && currentStage == 0)
-			{
-				// Enough moving, lets search again.
-				puts("LEFT!");
-				setMotors(DIR_LEFT);
-			}
-			else if(currDirection != DIR_FORWARD && currentStage == SEEK_ROTATE_TIME)
-			{
-				// Enough searching, nothing found, move a little
-				puts("FORWARD!");
-				setMotors(DIR_FORWARD);
-			}
-		}
-		break;
-	case STATE_DESTROY:
-		// Switch state if we're driving over the white line.
-		if(survivalCheck())
-			break;
-#ifdef PROGRESS_WHEEL
-		if(stateTimer == 0) // Reset counter if we just started pushing
-		{
-			wipeProgressHistory();
-		}
-		// Once we have filled up the history, and our combined progress is insufficient, consider flanking
-		if(progress < MIN_PROGRESS && stateTimer > PROGRESS_HISTORY_SIZE)
-		{
-		}
-#endif
-		if(distanceLeft > DISTANCE_CLOSE && distanceRight > DISTANCE_CLOSE)
-		{
-			// Target lost, go back to searching
-			SWITCH_STATE(STATE_SEEK);
-			break;
-		}
-		if(abs(distanceLeft - distanceRight) > DIFF_THRESHOLD)
-		{
-			// Sensors are appart, reallign.
-			if(distanceLeft > distanceRight)
-				setMotors(DIR_FORWARD | DIR_RIGHT);
-			else
-				setMotors(DIR_FORWARD | DIR_LEFT);
-		} else // Target straight ahead
-			setMotors(DIR_FORWARD);
-		break;
+	case STATE_MOVE:
+		doMoveState(); break;
+	case STATE_SCAN:
+		doScanState(); break;
+	case STATE_ATTACK:
+		doAttackState(); break;
 	case STATE_SURVIVE:
-		if(!survivalCheck() && stateTimer > SURVIVE_TIME) {
-			puts("Done with surviving, I welcome death.");
-			SWITCH_STATE(STATE_SEEK);
-		}
-		break;
+		doSurviveState(); break;
+	case STATE_FLANK_AWAY:
+		doFlankAwayState(); break;
+	case STATE_FLANK_TURN:
+		doFlankTurnState(); break;
+	case STATE_FLANK_FORWARD:
+		doFlankForwardState(); break;
+	case STATE_FLANK_SCAN:
+		doFlankScanState(); break;
 	default:
-		puts("Illegal state");
-		SWITCH_STATE(STATE_SEEK);
+		printString("Illegal state: ");
+		printInt(currState);
+		puts("");
+		SWITCH_STATE(STATE_SCAN);
 		delay_ms(SLEEP_TIME * 10);
 	}
 
@@ -220,80 +143,11 @@ void doMove()
 	delay_ms(SLEEP_TIME);
 }
 
-int survivalCheck()
-{
-	if(pushSensor(DIR_BACK))
-	{
-		setMotors(0);
-		return TRUE;
-	}
-	//return FALSE;
-	if((groundSensor(DIR_FORWARD | DIR_LEFT) && groundSensor(DIR_FORWARD | DIR_RIGHT)))
-	{
-		puts("Line in front");
-		setMotors(DIR_BACK);
-		SWITCH_STATE(STATE_SURVIVE);
-		return TRUE;
-	}
-	if(groundSensor(DIR_BACK | DIR_LEFT) && groundSensor(DIR_BACK | DIR_RIGHT))
-	{
-		puts("Line at back");
-		setMotors(DIR_FORWARD);
-		SWITCH_STATE(STATE_SURVIVE);
-		return TRUE;
-	}
-	if(groundSensor(DIR_BACK | DIR_LEFT) && groundSensor(DIR_FORWARD | DIR_LEFT))
-	{
-		puts("Line at left");
-		setMotors(DIR_RIGHT);
-		SWITCH_STATE(STATE_SURVIVE);
-		return TRUE;
-	}
-	if(groundSensor(DIR_BACK | DIR_RIGHT) && groundSensor(DIR_FORWARD | DIR_RIGHT))
-	{
-		puts("Line at right");
-		setMotors(DIR_LEFT);
-		SWITCH_STATE(STATE_SURVIVE);
-		return TRUE;
-	}
-	if(groundSensor(DIR_BACK | DIR_LEFT))
-	{
-		puts("Line at left back");
-		setMotors(DIR_FORWARD | DIR_RIGHT);
-		SWITCH_STATE(STATE_SURVIVE);
-		return TRUE;
-	}
-	if(groundSensor(DIR_BACK | DIR_RIGHT))
-	{
-		puts("Line at right back");
-		setMotors(DIR_FORWARD | DIR_LEFT);
-		SWITCH_STATE(STATE_SURVIVE);
-		return TRUE;
-	}
-	if(groundSensor(DIR_FORWARD | DIR_LEFT))
-	{
-		puts("Line in left front");
-		setMotors(DIR_BACK | DIR_RIGHT);
-		SWITCH_STATE(STATE_SURVIVE);
-		return TRUE;
-	}
-	if(groundSensor(DIR_FORWARD | DIR_RIGHT))
-	{
-		puts("Line in right front");
-		setMotors(DIR_BACK | DIR_LEFT);
-		SWITCH_STATE(STATE_SURVIVE);
-		return TRUE;
-	}
-	return FALSE;
-}
-
 void initState(int direction) {
 	if(direction == DIR_FORWARD) {
-		SWITCH_STATE(STATE_SEEK);
-		stateTimer = SEEK_ROTATE_TIME-1;
+		SWITCH_STATE(STATE_MOVE);
 	} else {
-		SWITCH_STATE(STATE_SEEK);
-		currDirection = 0x1000 | direction;
+		SWITCH_STATE(STATE_FLANK_TURN);
 	}
 }
 
@@ -369,10 +223,12 @@ void readSensors()
 		progressHistoryIndex = 0;
 }
 
-void setMotors(int direction)
+void setMotors(int direction, int speed)
 {
-	if(currDirection == direction)
-		return; // Don't needlessly change the signal
+	if(speed > 1023)
+		speed = 1023;
+	if(speed < 0)
+		speed = 0;
 	MOTOR_LEFT(1023);
 	MOTOR_RIGHT(1023);
 	if(direction & DIR_FORWARD) 
@@ -384,8 +240,8 @@ void setMotors(int direction)
 			MOTOR_LEFT(0);
 		}	
 	} else if(direction & DIR_BACK) {
-		MOTOR_LEFT(-1023);
-		MOTOR_RIGHT(-1023);
+		MOTOR_LEFT(-speed);
+		MOTOR_RIGHT(-speed);
 		if(direction & DIR_RIGHT)
 		{
 			MOTOR_LEFT(0);
@@ -396,11 +252,11 @@ void setMotors(int direction)
 		// No real movement, may be turning in place
 		if(direction & DIR_RIGHT)
 		{
-			MOTOR_LEFT(1023);
-			MOTOR_RIGHT(-1023);
+			MOTOR_LEFT(speed);
+			MOTOR_RIGHT(-speed);
 		} else if(direction & DIR_LEFT) {
-			MOTOR_LEFT(-1023);
-			MOTOR_RIGHT(1023);
+			MOTOR_LEFT(-speed);
+			MOTOR_RIGHT(speed);
 		} else {
 			MOTOR_LEFT(0);
 			MOTOR_RIGHT(0);
@@ -441,9 +297,9 @@ int groundSensor(unsigned sensor_dir)
 int distanceSensor(unsigned sensor_dir)
 {
 	if(sensor_dir == DIR_RIGHT)
-		return ((1024 + initialEyeRight) - sensor[0])/20;
+		return ((1024 + initialEyeRight) - sensor[0]);
 	else
-		return ((1024 + initialEyeLeft)  - sensor[1])/20;
+		return ((1024 + initialEyeLeft)  - sensor[1]);
 }
 
 int pushSensor(unsigned sensor_dir) {
@@ -468,16 +324,29 @@ void printState()
 	puts("");
 	// Print out state
 	switch(currState) {
-	case STATE_SEEK:
-		printString("SEE"); // (const rom far char *) ?
+	case STATE_MOVE:
+		printString("MOV");
 		break;
-	case STATE_DESTROY:
-		printString("DES");
+	case STATE_SCAN:
+		printString("SCN");
 		break;
-	case STATE_FLANK:
-		printString("FLA");
+	case STATE_ATTACK:
+		printString("ATK");
+		break;
 	case STATE_SURVIVE:
 		printString("SUR");
+		break;
+	case STATE_FLANK_AWAY:
+		printString("FLA");
+		break;
+	case STATE_FLANK_TURN:
+		printString("FLT");
+		break;
+	case STATE_FLANK_FORWARD:
+		printString("FLF");
+		break;
+	case STATE_FLANK_SCAN:
+		printString("FLS");
 		break;
 	default:
 		printString("INV");
@@ -531,5 +400,6 @@ void printState()
 	printChar(',');
 	printInt(progressRaw);
 	printChar(',');
+	printInt(stateProgress);
 	puts("");
 }

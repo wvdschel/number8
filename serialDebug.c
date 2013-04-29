@@ -1,10 +1,10 @@
 #include "serialDebug.h"
-#include "util.h"
 #include <usart.h>
 #include "sumolib/dwengoBoard.h"
 
 char buffer[2];
 
+#if 0
 static void printBase64(unsigned char sixbit)
 {
 	sixbit &= 63;
@@ -29,6 +29,7 @@ static void printBase64(unsigned char sixbit)
 		printChar('/');
 	}
 }
+#endif
 
 void initDebug()
 {
@@ -97,6 +98,15 @@ void printString_(char* message)
 
 	/*while(*message != 0)
 		printChar(*(const rom far char *)message++);*/
+}
+
+static int pow(int num, int exp) {
+	int result = 1;
+	while(exp > 0) {
+		result *= num;
+		exp--;
+	}
+	return result;
 }
 
 void printInt(int number)

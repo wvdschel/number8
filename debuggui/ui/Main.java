@@ -38,9 +38,9 @@ public class Main {
 						String[] data = line.split(",");
 						
 						if(data.length == 21){
-						
-							// 0:  [A-Z]{3}
-							// 1:  stateTimer
+							sensors.state = data[0];		// 0:  [A-Z]{3} state
+							sensors.stateTimer = data[1];	// 1:  stateTimer
+
 							sensors.motorSpeed[LEFT ] = Integer.parseInt(data[2]); // 2:  LSpeed
 							sensors.motorSpeed[RIGHT] = Integer.parseInt(data[3]); // 3:  RSpeed
 

@@ -61,6 +61,9 @@ public class RobotPanel extends JPanel {
 		g.drawRect(x, y + h - dh, w, dh);
 
 		g.drawRect(x, y, w, h - dh);
+
+		String stateString = sensors.state + " - " + sensors.stateTimer;
+		g.drawString(stateString, x + w/2 - fontMetrics.stringWidth(stateString) / 2, y+h+dh);
 		g.translate(-dx, -dy);
 	}
 	

@@ -16,4 +16,6 @@ public class Sensors {
 	String pushSensor;
 	
 	int[] motorSpeed = new int[2];
+	String state = "";
+	String stateTimer = "";
 }

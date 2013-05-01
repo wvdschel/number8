@@ -10,6 +10,7 @@
 #define STATE_FLANK_AWAY	5			// Back away from the enemy
 #define STATE_FLANK_TURN	6 			// Turn away from the enemy
 #define STATE_ATTACK_REAR	7			// Enemy is detected in our rear (button)
+#define STATE_REAR_FLANK	8
 
 void doMoveState(void);
 void doScanState(void);
@@ -18,5 +19,6 @@ void doSurviveState(void);
 void doFlankAwayState(void);
 void doFlankTurnState(void);
 void doAttackRearState(void);
+void doRearFlankState(void);
 
 #endif

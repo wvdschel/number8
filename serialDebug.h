@@ -5,7 +5,7 @@
 #define DEBUG 1
 #define USE_MOTORS 1
 
-#define ABS(x) ((x) < 0 ? (-x) : (x))
+#define ABS(x) ((x) < 0 ? (-(x)) : (x))
 
 void initDebug(void);
 

@@ -8,9 +8,12 @@
 #define DIR_LEFT 	4
 #define DIR_RIGHT 	8
 
-#define PROGRESS_HISTORY_SIZE	((int)15)
+#define PROGRESS_WHEEL 		1
+
+#define PROGRESS_HISTORY_SIZE	((int)30)
 // State switching macro
 #define SWITCH_STATE(nState)	{					\
+		printState();								\
 		printInt(__LINE__);							\
 		printString(": Switching to new state ");	\
 		printInt(nState);							\

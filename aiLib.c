@@ -26,7 +26,6 @@
 
 #define SURVIVE_TIME		40			// How long the robot stays in survival mode after the "threat" has gone away.
 
-#define PROGRESS_WHEEL 		1
 #define PROGRESS_WHEEL_TIMER 61036		// Internal clock frequency is 48Mhz because of the PLL settings. Using fosc/4 and
 										// a prescaler of 1/8 for timer 1 in 16 bit mode, this value gives us 3 ms between
 										// interrupts, not including interrupt processing.
@@ -46,7 +45,6 @@ int initialEyeLeft = 0;			// Initial readings for long distance sensors, to acco
 int initialEyeRight = 0;
 int initialEyeAvg = 0;
 int progress = 0;				// Progress over the past 100 turns combined.
-#define PROGRESS_HISTORY_SIZE	((int)15)
 int progressHistory[PROGRESS_HISTORY_SIZE] = {0};
 								// Circular buffer of 100 turns raw input from the progress wheel.
 int progressHistoryIndex = 0;	// Current end of the circular buffer.
@@ -132,6 +130,8 @@ void doMove()
 		doFlankTurnState(); break;
 	case STATE_ATTACK_REAR:
 		doAttackRearState(); break;
+	case STATE_REAR_FLANK:
+		doRearFlankState(); break;
 	default:
 		printString("Illegal state: ");
 		printInt(currState);
@@ -140,7 +140,8 @@ void doMove()
 		delay_ms(SLEEP_TIME * 10);
 	}
 
-	delay_ms(SLEEP_TIME);
+	if(!DEBUG)
+		delay_ms(SLEEP_TIME);
 }
 
 void initState(int direction)
@@ -148,12 +149,11 @@ void initState(int direction)
 	currState = STATE_SCAN;
 	stateTimer = 0;
 	stateProgress = 0;
-	return;
 
 	if(direction == DIR_FORWARD) {
 		SWITCH_STATE(STATE_MOVE);
 	} else {
-		SWITCH_STATE(STATE_FLANK_TURN);
+		SWITCH_STATE(STATE_SCAN);
 	}
 }
 
@@ -281,14 +281,14 @@ int groundSensor(unsigned sensor_dir)
 #ifdef BLACK_EDGE_WHITE_BOARD
 	if(sensor_dir & DIR_FORWARD) {
 		if(sensor_dir & DIR_RIGHT)
-			return sensor[2] * WHITE_BLACK_RATIO > initialGroundReading[0];  // Front right
+			return ABS(sensor[2]-initialGroundReading[0]) > 110;  // Front right
 		else
-			return sensor[4] * WHITE_BLACK_RATIO > initialGroundReading[2];  // Front left
+			return ABS(sensor[4]-initialGroundReading[2]) > 110;  // Front left
 	} else {
 		if(sensor_dir & DIR_LEFT)
-			return sensor[3] * WHITE_BLACK_RATIO > initialGroundReading[1];  // Rear left
+			return ABS(sensor[3]-initialGroundReading[1]) > 110;  // Rear left
 		else
-			return sensor[5] * WHITE_BLACK_RATIO > initialGroundReading[3];  // Rear right
+			return ABS(sensor[5]-initialGroundReading[3]) > 110;  // Rear right
 	}
 #else
 	if(sensor_dir & DIR_FORWARD) {
@@ -355,6 +355,9 @@ void printState()
 		break;
 	case STATE_ATTACK_REAR:
 		printString("BSX");
+		break;
+	case STATE_REAR_FLANK:
+		printString("RFL");
 		break;
 	default:
 		printString("INV");

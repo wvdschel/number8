@@ -125,7 +125,7 @@ void main(void) {
 	initLCD();
 	clearLCD();
 
-	appendStringToLCD("Press a key to calibrate sensors.");
+	appendStringToLCD("Press center key to calibrate sensors (" __TIME__ ")");
 
 	while(1) {
 		stopMotors();

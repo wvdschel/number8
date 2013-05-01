@@ -56,8 +56,8 @@ public class Main {
 							/* Long distance sensors */
 							// 9:  LDistance
 							// 10: LDistance
-							sensors.distanceSensors[LEFT ] = data[12]; // 11: RDistanceRaw
-							sensors.distanceSensors[RIGHT] = data[11]; // 12: LDistanceRaw
+							sensors.distanceSensors[LEFT ] = data[9]; // 11: RDistanceRaw
+							sensors.distanceSensors[RIGHT] = data[10]; // 12: LDistanceRaw
 
 							/* Ground sensors */
 							sensors.groundSensorValues[RIGHT | FRONT] = data[13]; // 13: FRGroundRaw
